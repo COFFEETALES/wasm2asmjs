@@ -1,0 +1,199 @@
+// vim: set tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab :
+'use strict';
+
+{
+	const createOffsetAst = function(walker, expr) {
+		if ( 0 !== expr.offset )
+		{
+			$label_1: {
+				const offsetExpr = binaryen.getExpressionInfo(expr.ptr);
+				if ( binaryen['BinaryId'] === offsetExpr.id && binaryen['AddInt32'] === offsetExpr.op )
+				{
+					const rightExpr = binaryen.getExpressionInfo(offsetExpr.right);
+					const leftExpr = binaryen.getExpressionInfo(offsetExpr.left);
+					assert.notStrictEqual(binaryen['ConstId'], leftExpr.id, 'createOffsetAst: leftExpr is Const');
+					if ( binaryen['ConstId'] === rightExpr.id && binaryen['i32'] === rightExpr.type )
+					{
+						const binaryExpr = (
+							decodedModule.i32.add(
+								offsetExpr.left, decodedModule.i32.const( rightExpr.value + expr.offset )
+							)
+						);
+						expr.ptr = binaryExpr;
+						break $label_1;
+					}
+				}
+				const binaryExpr = (
+					decodedModule.i32.add( expr.ptr, decodedModule.i32.const( expr.offset ) )
+				);
+				expr.ptr = binaryExpr;
+			}
+		}
+		return walker( expr, expr.ptr );
+	};
+
+	var visitLoadId = function(walker, funcItem, parentNodes, expr, alignType) {
+		if ( expr.bytes !== expr.align )
+			throw 'LoadId: expr.bytes !== expr.align';
+		if ( binaryen['auto'] !== alignType && expr.type !== alignType )
+			throw 'LoadId: expr.type !== alignType';
+		if ( binaryen['DropId'] === parentNodes[parentNodes.length-1].id )
+			return [];
+
+		let name = '';
+		if ( binaryen['i32'] === expr.type )
+		{
+			const l = {};
+			l[0x000|1] = 'i8';
+			l[0x000|2] = 'i16';
+			l[0x000|4] = 'i32';
+			l[0x100|1] = 'u8';
+			l[0x100|2] = 'u16';
+			l[0x100|4] = 'i32';
+
+			if ( undefined === l[(false===expr.isSigned?0x100:0x0)|expr.bytes] )
+				throw 'LoadId: l[(false===expr.isSigned?0x100:0x0)|expr.bytes] not defined.';
+
+			name = l[(false===expr.isSigned?0x100:0x0)|expr.bytes];
+		}
+		else if ( binaryen['f32'] === expr.type )
+		{
+			name = 'f32';
+		}
+		else if ( binaryen['f64'] === expr.type )
+		{
+			name = 'f64';
+		}
+		else
+		{
+			throw 'LoadId: expr.type not implemented.';
+		}
+		addAsmJsHeader(name);
+
+		const shr = {}
+		shr[2] = 1;
+		shr[4] = 2;
+		shr[8] = 3;
+
+		if ( 1 !== expr.bytes && undefined === shr[expr.bytes] )
+			throw 'LoadId: shr[expr.bytes] not defined.';
+
+		const offsetNode = createOffsetAst(walker, expr);
+
+		const node = new UglifyJS.AST_Sub({
+			expression: new UglifyJS.AST_SymbolRef({
+				name: ['$', name].join('')
+			}),
+			property: (
+				1 === expr.bytes ?
+				offsetNode :
+				new UglifyJS.AST_Binary({
+					left: offsetNode,
+					operator: '>>',
+					right: new UglifyJS.AST_Number({
+						value: shr[expr.bytes],
+						start: { raw: shr[expr.bytes].toString(10) }
+					})
+				})
+			)
+		});
+
+		{
+			const parentNode = parentNodes[parentNodes.length-1];
+
+			const check_1 = binaryen['i32'] === expr.type &&
+				binaryen['BinaryId'] === parentNode.id && true !== intOperators[parentNode.op];
+			const check_2 = binaryen['f64'] === expr.type &&
+				binaryen['BinaryId'] === parentNode.id;
+
+			const check_3 = binaryen['LocalSetId'] === parentNode.id;
+			const check_4 = binaryen['CallId'] === parentNode.id;
+			const check_5 = binaryen['LoadId'] === parentNode.id && expr.srcPtr === parentNode.ptr;
+			const check_6 = binaryen['UnaryId'] === parentNode.id && binaryen['EqZInt32'] === parentNode.op;
+			const check_7 = binaryen['SelectId'] === parentNode.id;
+			const check_8 = binaryen['LoopId'] === parentNode.id;
+			const check_9 = (binaryen['IfId'] === parentNode.id || binaryen['BreakId']) &&
+				expr.srcPtr === parentNode.condition;
+
+			if ( check_1 || check_2 || check_3 || check_4 || check_5 || check_6 || check_7 || check_8 || check_9 )
+			{
+				return makeAsmCoercion( node, expr.type,
+					binaryen['auto'] === alignType ? expr.type : alignType
+				);
+			}
+		}
+		return node;
+	};
+
+	var visitStoreId = function(walker, funcItem, parentNodes, expr) {
+		if ( expr.bytes !== expr.align )
+			throw 'StoreId: expr.bytes !== expr.align';
+		if ( expr.offset < 0 )
+			throw 'StoreId: expr.offset < 0';
+
+		const valueType = binaryen.getExpressionInfo(expr.value).type;
+
+		let name = '';
+		if ( binaryen['i32'] === valueType )
+		{
+			const l = {};
+			l[1] = 'i8'; 
+			l[2] = 'i16'; 
+			l[4] = 'i32'; 
+
+			if ( undefined === l[expr.bytes] )
+				throw 'StoreId: l[expr.bytes] not defined.';
+
+			name = l[ expr.bytes ];
+		}
+		else if ( binaryen['f32'] === valueType )
+		{
+			name = 'f32';
+		}
+		else if ( binaryen['f64'] === valueType )
+		{
+			name = 'f64';
+		}
+		else
+		{
+			throw expr.type;
+			throw 'StoreId: valueType not implemented.';
+		}
+		addAsmJsHeader(name);
+
+		const shr = {}
+		shr[2] = 1;
+		shr[4] = 2;
+		shr[8] = 3;
+
+		if ( 1 !== expr.bytes && undefined === shr[expr.bytes] )
+			throw 'StoreId: shr[expr.bytes] not defined.';
+
+		const offsetNode = createOffsetAst(walker, expr);
+
+		return new UglifyJS.AST_SimpleStatement({
+			body: new UglifyJS.AST_Assign({
+				left: new UglifyJS.AST_Sub({
+					expression: new UglifyJS.AST_SymbolRef({
+						name: ['$', name].join('')
+					}),
+					property: (1 === expr.bytes ?
+						offsetNode :
+						new UglifyJS.AST_Binary({
+							left: offsetNode,
+							operator: '>>',
+							right: new UglifyJS.AST_Number({
+								value: shr[expr.bytes],
+								start: { raw: shr[expr.bytes].toString(10) }
+							})
+						})
+					)
+				}),
+				operator: '=',
+				right: walker( expr, expr.value )
+			})
+		});
+	};
+
+}
+
