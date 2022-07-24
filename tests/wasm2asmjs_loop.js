@@ -125,9 +125,6 @@
 		if (!module.validate())
 		  throw new Error("validation error");
 
-		process.stdout.write('emitText: ' + module.emitText());
-		process.stdout.write('\n');
-
 		return module;
 	};
 

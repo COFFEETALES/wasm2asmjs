@@ -6,8 +6,10 @@
 	const fs = require('fs');
 	const vm = require('vm');
 	const binaryen = (
-		await import('./node_modules/binaryen/index.js')
-			).default;
+		await import(
+			url.pathToFileURL(path.join(process.env['NODE_PATH'], 'binaryen', 'index.js'))['href']
+		)
+	).default;
 
 	const sandbox = {
 		'require': require,

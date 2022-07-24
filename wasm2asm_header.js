@@ -14,7 +14,7 @@ const output = {
 	'wast':                 false,
 	'js':                   false,
 	'metadata':             false,
-    'optimize_for_js':      (
+	'optimize_for_js':      (
 		'0' !== process.env['asmjs_optimize_for_js']
 	),
 	'warnings': {
