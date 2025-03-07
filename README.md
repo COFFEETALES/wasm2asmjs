@@ -1,13 +1,13 @@
 coffeetales.net/WASM2ASMJS
 ==========================
 
-Tool used internally. Right now, the README doesn't mean to be full of detailed explanations. Feel free to submit a Pull Request for any additions you want to share.
+This tool is primarily intended for internal use. At the moment, the README is not designed to provide extensive explanations. However, we welcome contributions, so please feel free to submit a Pull Request if you have any additions or improvements you would like to share.
 
-### Browsers compatibility in order to achieve best performances
+### Browser Compatibility for Optimal Performance
 
-- `EdgeHTML` : since version 13
-- `Chromium` : full-featured ASM.JS validator shipped in version 61
-- `Firefox` : 32 bits float support added in version 34
+- **EdgeHTML**: This tool is compatible with EdgeHTML starting from version 13. This ensures that users of Microsoft Edge can utilize the full capabilities of the tool.
+- **Chromium**: The tool includes a comprehensive ASM.JS validator that has been available since version 61 of Chromium. This allows for robust performance and validation when using browsers based on the Chromium engine, such as Google Chrome.
+- **Firefox**: Support for 32-bit floating-point operations was introduced in version 34 of Firefox. This enhancement allows for improved performance and compatibility when using Mozilla Firefox.
 
 Usage
 -----

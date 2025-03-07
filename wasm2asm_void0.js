@@ -1,4 +1,3 @@
-
 //{
 //	/*var herschel = (function(stdlib, foreign, buffer)
 //	{"use asm";
@@ -72,4 +71,3 @@
 //});
 //console.log(res.code);
 //}
-
