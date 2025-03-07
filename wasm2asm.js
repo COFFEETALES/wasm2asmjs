@@ -1,4 +1,3 @@
-// vim: set tabstop=4 shiftwidth=4 softtabstop=4 noexpandtab :
 'use strict';
 
 // https://github.com/mozilla/gecko-dev/blob/master/js/src/wasm/AsmJS.cpp

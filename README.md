@@ -5,8 +5,8 @@ This tool is primarily intended for internal use. At the moment, the README is n
 
 ### Browser Compatibility for Optimal Performance
 
-- **EdgeHTML**: This tool is compatible with EdgeHTML starting from version 13. This ensures that users of Microsoft Edge can utilize the full capabilities of the tool.
-- **Chromium**: The tool includes a comprehensive ASM.JS validator that has been available since version 61 of Chromium. This allows for robust performance and validation when using browsers based on the Chromium engine, such as Google Chrome.
+- **EdgeHTML**: Compatible with EdgeHTML starting from version 13. This ensures that users of Microsoft Edge can utilize the full capabilities of the tool.
+- **Chromium**: The ASM.JS validator has been available since version 61 of Chromium. This allows for robust performance and validation when using browsers based on the Chromium engine, such as Google Chrome.
 - **Firefox**: Support for 32-bit floating-point operations was introduced in version 34 of Firefox. This enhancement allows for improved performance and compatibility when using Mozilla Firefox.
 
 Usage
@@ -157,6 +157,24 @@ var asmjs_func = function(stdlib, foreign, buffer) {
     };
 };
 ```
+Run tests
+---------
+
+```
+cd /coffee/dev/wasm2asm
+for file in 'tests/wasm2asmjs_'*'.js'; do
+  filename="$(basename "$file")"
+  NODE_PATH='/coffeetales.net/node_modules' node \
+    './wasm2asm.js'                              \
+    --validate-asm                               \
+    --trace-asm-parser                           \
+    --emit-metadata                              \
+    --emit-js                                    \
+    -DASMJS_BEAUTIFY                             \
+    -DNDEBUG                                     \
+    "test:$filename"
+done
+```
 
 Credits
 -------
@@ -164,4 +182,3 @@ Credits
 [Binaryen](https://github.com/WebAssembly/binaryen)
 [UglifyJS](https://github.com/mishoo/UglifyJS)
 [Coffeetales](https://coffeetales.net)
-
