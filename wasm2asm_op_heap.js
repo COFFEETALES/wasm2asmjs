@@ -49,7 +49,9 @@
 			l[0x000|4] = 'i32';
 			l[0x100|1] = 'u8';
 			l[0x100|2] = 'u16';
+			//l[0x100|4] = 'u32';
 			l[0x100|4] = 'i32';
+			// ^ Unsigned 32-bit integers are replaced by signed integers due to the particular syntax of asm.js.
 
 			if ( undefined === l[(false===expr.isSigned?0x100:0x0)|expr.bytes] )
 				throw 'LoadId: l[(false===expr.isSigned?0x100:0x0)|expr.bytes] not defined.';
@@ -101,21 +103,26 @@
 		{
 			const parentNode = parentNodes[parentNodes.length-1];
 
-			const check_1 = binaryen['i32'] === expr.type &&
-				binaryen['BinaryId'] === parentNode.id && true !== intOperators[parentNode.op];
-			const check_2 = binaryen['f64'] === expr.type &&
-				binaryen['BinaryId'] === parentNode.id;
+			const checks = [
+				binaryen['i32'] === expr.type && binaryen['BinaryId'] === parentNode.id && true !== intOperators[parentNode.op],
+				binaryen['f32'] === expr.type && binaryen['BinaryId'] === parentNode.id && (
+					binaryen['EqFloat32'] <= parentNode.op && parentNode.op <= binaryen['GeFloat32']
+				),
+				binaryen['f64'] === expr.type && binaryen['BinaryId'] === parentNode.id && (
+					(binaryen['EqFloat64'] <= parentNode.op && parentNode.op <= binaryen['GeFloat64']) || (
+						binaryen['AddFloat64'] <= parentNode.op && parentNode.op <= binaryen['MaxFloat64']
+					)
+				),
+				binaryen['LocalSetId'] === parentNode.id,
+				binaryen['CallId'] === parentNode.id,
+				binaryen['LoadId'] === parentNode.id && expr.srcPtr === parentNode.ptr,
+				binaryen['UnaryId'] === parentNode.id && binaryen['EqZInt32'] === parentNode.op,
+				binaryen['SelectId'] === parentNode.id,
+				binaryen['LoopId'] === parentNode.id,
+				(binaryen['IfId'] === parentNode.id || binaryen['BreakId']) && expr.srcPtr === parentNode.condition,
+			];
 
-			const check_3 = binaryen['LocalSetId'] === parentNode.id;
-			const check_4 = binaryen['CallId'] === parentNode.id;
-			const check_5 = binaryen['LoadId'] === parentNode.id && expr.srcPtr === parentNode.ptr;
-			const check_6 = binaryen['UnaryId'] === parentNode.id && binaryen['EqZInt32'] === parentNode.op;
-			const check_7 = binaryen['SelectId'] === parentNode.id;
-			const check_8 = binaryen['LoopId'] === parentNode.id;
-			const check_9 = (binaryen['IfId'] === parentNode.id || binaryen['BreakId']) &&
-				expr.srcPtr === parentNode.condition;
-
-			if ( check_1 || check_2 || check_3 || check_4 || check_5 || check_6 || check_7 || check_8 || check_9 )
+			if ( -1 !== checks.indexOf(true) )
 			{
 				return makeAsmCoercion( node, expr.type,
 					binaryen['auto'] === alignType ? expr.type : alignType
@@ -137,9 +144,9 @@
 		if ( binaryen['i32'] === valueType )
 		{
 			const l = {};
-			l[1] = 'i8'; 
-			l[2] = 'i16'; 
-			l[4] = 'i32'; 
+			l[1] = 'i8';
+			l[2] = 'i16';
+			l[4] = 'i32';
 
 			if ( undefined === l[expr.bytes] )
 				throw 'StoreId: l[expr.bytes] not defined.';

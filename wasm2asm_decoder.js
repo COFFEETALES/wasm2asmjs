@@ -2,6 +2,10 @@
 'use strict';
 
 {
+//
+//
+//	var decodedModule = binaryen.readBinary( dataBuffer );
+
 	const GetFileBuffer = ( rel ) => {
 		let absFilePath = path.join(process.cwd(), rel);
 		assert.strictEqual(true,
@@ -35,11 +39,13 @@
 	var decodedModule =
 		(function() {
 			const p = argv[0];
-			if ( 'test:' !== p.slice(0,5) ) {
+			if ( 'test:' !== p.slice(0,5) )
+			{
 				if ( 'wast:' === p.slice(0,5) ) {
 					const textBuffer = GetFileText(p.slice(5));
 					return binaryen.parseText(textBuffer);
 				}
+				//return binaryen.parseText(GetFileText(argv[0]));
 				const dataBuffer = GetFileBuffer(argv[0]);
 				return binaryen.readBinary( dataBuffer );
 			}
@@ -51,6 +57,7 @@
 
 	if ( true === output['process'] )
 	{
+		// Below based on https://github.com/WebAssembly/binaryen/blob/master/src/wasm2js.h occurrence of processWasm » runner
 		const passList = [];
 		{
 			passList[passList.length] = 'legalize-js-interface';
@@ -71,12 +78,25 @@
 				passList[passList.length] = 'precompute-propagate';
 				passList[passList.length] = 'avoid-reinterprets';
 			}
+
+			// addDefaultOptimizationPasses
+			// https://github.com/WebAssembly/binaryen/blob/master/src/passes/pass.cpp
+			//decodedModule.optimize(); // cette instruction sollicite les optimisations par défaut
 			passList[passList.length] = 'default-optimization-passes';
 			passList[passList.length] = 'avoid-reinterprets';
 		}
 
 		{
 			passList[passList.length] = 'flatten';
+
+			// not from official binaryen:
+			//passList[passList.length] = 'optimize-instructions';
+			//passList[passList.length] = 'simplify-globals-optimizing';
+			//passList[passList.length] = 'local-cse';
+			//passList[passList.length] = 'pick-load-signs';
+			//passList[passList.length] = 'post-assemblyscript';
+			//passList[passList.length] = 'post-assemblyscript-finalize';
+
 			passList[passList.length] = 'simplify-locals-notee-nostructure';
 			if (binaryen.getOptimizeLevel() > 0) {
 				passList[passList.length] = 'remove-unused-names';
@@ -120,6 +140,26 @@
 							]);
 						}
 					}
+//					{
+//						const funcInfo = binaryen.getFunctionInfo( funcPtr );
+//						if ( '' === funcInfo['base'] ) {
+//							/*const b = decodedModule.block(null, [
+//								decodedModule.return(
+//									decodedModule.f32.const(1.5)
+//								)
+//							])*/
+//
+//							// self['addFunction'] = function(name, params, results, varTypes, body)
+//
+//							/*
+//							decodedModule.removeFunction( funcInfo['name'] );
+//							decodedModule.addFunction(
+//								funcInfo['name'], funcInfo['params'],
+//									funcInfo['results'], funcInfo['vars'], funcInfo['body']
+//							);
+//							*/
+//						}
+//					}
 				} // getNumFunctions 0..len
 			); // getNumFunctions loop
 	}
@@ -132,14 +172,31 @@
 	}
 
 	var finalizeJs = function (ast, mode) {
+		// console.log(topLevel.print_to_string());
+		// https://www.npmjs.com/package/uglify-js#minify-options
+		//delete defs['NDEBUG'];
+		//defs['_DEBUG'] = 1;
+
+//		const mangle =
+//			('asm.js' === mode ?
+//				/*{ reserved: ['stdlib', 'foreign', 'buffer'] }*/false :
+//					(undefined !== defs['NDEBUG']));
+
+//		ast.figure_out_scope();
+//		process.stderr.write( ''+ast.print_to_string()+'\n' )
 		const res = UglifyJS.minify(ast, {
+		// print_to_string is mandatory; otherwise, issues may occur randomly!
 			parse:                  {},
-			compress:               false,//«false», sinon plantage //(undefined !== defs['NDEBUG']),
+			compress:               false,// "false", otherwise crash //(undefined !== defs['NDEBUG']),
 			mangle:                 false,
 			output: {
 				ast:                false,
 				code:               true,
-				beautify:           true,
+				beautify:           true,/*(
+					'asm.js' === mode && (
+						undefined !== defs['_DEBUG'] || undefined !== defs['ASMJS_BEAUTIFY']
+					)
+				),*/
 				semicolons:         true,
 				keep_quoted_props:  true,
 				quote_style:        3
@@ -161,6 +218,9 @@
 
 		if ( res.error ) throw res.error;
 
+		//console.log(JSON.stringify(topLevel, null, 4));
+		//console.log(JSON.stringify(res, null, 4));
+
 		if ( 'function' === typeof CompleteTest )
 		{
 			CompleteTest(res, mode);
@@ -178,7 +238,7 @@
 		const arr =
 			[ ...Array(decodedModule.getNumMemorySegments()).keys() ].map(
 				i => {
-					const segment = decodedModule.getMemorySegmentInfoByIndex(i);
+					const segment = decodedModule.getMemorySegmentInfo(String(i));
 					return {
 						'byteOffset': segment.offset,
 						'buffer': segment.data,
@@ -197,6 +257,8 @@
 		const totalLen = (
 			((arr[arr.length-1]['byteOffset'] + arr[arr.length-1]['byteLength']) - startOffset) + 3
 		) & (~3);
+
+		//process.stderr.write('totalLen: ' + totalLen + '\n');
 
 		const byteArray = new Uint8Array(totalLen);
 		for ( let i = 0 ; i !== arr.length ; ++i )
@@ -244,6 +306,31 @@
 					})
 				].concat(
 					(function() {
+/*
+						return [
+						new UglifyJS.AST_SimpleStatement({
+							body: new UglifyJS.AST_Call({
+								expression: new UglifyJS.AST_Dot({
+									expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
+									property: 'set'
+								}),
+								args: [
+									new UglifyJS.AST_Array({
+										elements: Array.prototype.slice.call(
+											new Int32Array(byteArray.buffer)
+										).map(
+											(i) => new UglifyJS.AST_Number({ value: i })
+										)
+									}),
+									new UglifyJS.AST_Number({
+										value: Math.trunc( arr[0]['byteOffset']/4 )
+									})
+								]
+							})
+						})
+						];
+*/
+
 						var retValue = [];
 
 						var i = 0;
@@ -326,6 +413,7 @@
 							}
 							else if ( null !== filler ) {
 								fillData(i);
+								//lastIndex = i-((16-1)-l);
 								lastIndex = i;
 								filler = null;
 							}

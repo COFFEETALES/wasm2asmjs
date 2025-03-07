@@ -3,6 +3,28 @@
 
 {
 	var createEqz = function (srcPtr) {
+
+/*
+
+$env:PATH = "C:\programs\python3;$env:PATH"
+@'
+from sympy import *
+from sympy.logic.boolalg import *
+
+x, y, z, w = symbols('x, y, z, w')
+
+# my_op = Not(And(Or(Gt(z, 0), Eq(w, 0)), And(Gt(x, 0), Lt(y, 0))))
+# my_op = Not(Xor(Lt(x, 0),1))
+# my_op = Not(Or(Gt(x,6),Eq(7-y,0)))
+# my_op = !(x<4 || x>10 || |x-7|<2)
+my_op = Xor(Or(Or(Lt(x,4),Gt(x,10)),Lt(abs(x-7),2)), 1)
+print( my_op )
+# https://docs.sympy.org/latest/modules/logic.html#simplification-and-equivalence-testing
+print( simplify_logic( my_op, None, True, False ) )
+'@ | & python
+
+*/
+
 		assert.strictEqual(true, output['optimize_for_js'], 'true === output["optimize_for_js"]');
 		return (
 			(function x(ptr, eqz) {
@@ -116,7 +138,7 @@
 				}
 			}
 		).flat(Infinity).filter(item => undefined !== item);
-	}; 
+	};
 }
 {
 	const genMathDep = (str) => {
@@ -156,7 +178,7 @@
 			'f32':'Float32Array',
 			'f64':'Float64Array'
 		};
-		
+
 		return new UglifyJS.AST_VarDef({
 			name: new UglifyJS.AST_SymbolVar({ name: ['$', str].join('') }),
 			value: new UglifyJS.AST_New({
@@ -384,8 +406,7 @@ const genStrId = function(num) {
 			);
 		};
 
-		// /!\ chaque FTable doit avoir sa propre déclaration ornée du mot-clef «var»
-		// each FTable needs to be declared with the var keyword.
+		// Each FTable must have its own declaration preceded by the keyword "var".
 		var processAsmJsFTable = () => (
 			Object.keys(ftableList).map(
 				o => (
@@ -435,7 +456,7 @@ const genStrId = function(num) {
 		wasmGlobals[wasmGlobals.length] = res;
 
 		if ( name !== res['name'] ) throw '';
-		
+
 		return res;
 //		throw ['ProcessGlobal: ',name].join('');
 	};

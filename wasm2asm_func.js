@@ -7,7 +7,7 @@
 		if ( id < params.length )
 			return params[id];
 		id -= params.length;
-		
+
 		if ( id < funcInfo.vars.length )
 			return funcInfo.vars[id];
 		throw 'getLocalType!';
@@ -120,6 +120,20 @@
 			if ( coercionTypes['i32'] === resultType )
 			{
 				addAsmJsHeader('Math_floor');
+				/*return new UglifyJS.AST_Call({
+					expression: new UglifyJS.AST_SymbolRef({
+						name: ['$', 'floor'].join('')
+					}),
+					args: [
+						new UglifyJS.AST_Binary({
+							left: node,
+							operator: '|',
+							right: new UglifyJS.AST_Number({
+								value: 0, start: { raw: '0' }
+							})
+						})
+					]
+				});*/
 				return (
 					new UglifyJS.AST_UnaryPrefix({
 						operator: '~~',
@@ -189,11 +203,14 @@
 					['f', funcInfo['encoded_name']].join('_') : funcInfo['name']
 			);
 
+			//const funcTypeInfo = binaryen.getFunctionTypeInfo( funcInfo['type'] );
+
 			const argnames = [];
 			let body = [];
 
 			{
 				var numParams = 0;
+				// « func arguments »
 				const arr = binaryen['expandType'](funcInfo['params']);
 				for ( let i = 0, len = arr.length ; i !== len ; ++i )
 				{
@@ -203,6 +220,7 @@
 							name: paramName
 						})
 
+					//process.stderr.write('TYPE: ' + JSON.stringify(funcInfo) + '\n');
 					body[body.length] =
 						new UglifyJS.AST_SimpleStatement({
 							body: new UglifyJS.AST_Assign({
@@ -221,8 +239,12 @@
 				let c = [];
 				if ( binaryen['BlockId'] === funcBody.id && '' === funcBody.name )
 				{
+//					if ( '' !== funcBody['name'] )
+//					{ throw 'binaryen[\'BlockId\'] === funcBody.id && \'\' !== funcBody.name'; }
+
 					c = funcBody['children'];
 
+					// We check for the presence of a return opcode at the end of the block.
 					if ( 0 !== c.length &&
 						binaryen['ReturnId'] === binaryen.getExpressionInfo(c[c.length-1]).id )
 					{
@@ -255,6 +277,7 @@
 
 								const localIdx = idx+numParams;
 								var walker = function x (ptr) {
+									// Returns undefined on success.
 									if ( 0 === ptr ) return;
 									const expr = binaryen.getExpressionInfo(ptr);
 									if ( binaryen['BlockId'] === expr['id'] )
@@ -322,6 +345,14 @@
 													const v = binaryen.getExpressionInfo(expr['value']);
 													if ( binaryen['ConstId'] === v['id'] ) {
 														c.splice(j, 1);
+														/*
+														if ( binaryen['i32'] !== i ) {
+															return (
+																Math.floor(v['value']) === v['value'] ?
+																	v['value'].toFixed(1) : v['value'].toString(10)
+															);
+														}
+														*/
 														return v['value'];
 													}
 													return;
@@ -343,6 +374,11 @@
 
 				if ( binaryen['BlockId'] === funcBody.id )
 				{
+					/*funcInfo['body'] = (
+						'' !== funcBody.name ?
+							decodedModule.block('', [funcInfo['body']], funcBody.type) :
+							decodedModule.block('', funcBody.children, funcBody.type)
+					);*/
 					funcInfo['body'] = (
 						decodedModule.block(funcBody.name, funcBody.children, funcBody.type)
 					);
@@ -369,6 +405,7 @@
 				f[binaryen['BreakId']] = visitBreakId;
 				f[binaryen['CallIndirectId']] = visitCallIndirectId;
 				f[binaryen['SelectId']] = visitSelectId;
+				//f[binaryen['SwitchId']] = visitSwitchId;
 
 				const parentNodes = [];
 

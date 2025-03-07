@@ -59,6 +59,7 @@
 			throw 'LoopId: Label value undefined.';
 
 		const labelValue = getLabelName(expr.name);
+		// ^ The label is generated regardless of the situation. When JS optimizations are enabled, the name is not necessarily used but is still retained.
 
 		expr['nested'] = false;
 		expr['nameList'] = [expr.name];
@@ -189,6 +190,7 @@
 			);
 		}
 
+		// The "nested" property is modified by feeding the "resultLoop" variable.
 		if ( true === expr['nested'] ) {
 			return (
 				new UglifyJS.AST_LabeledStatement({

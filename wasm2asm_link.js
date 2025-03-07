@@ -2,6 +2,7 @@
 'use strict';
 
 {
+	// http://lisperator.net/uglifyjs/transform
 	let resFunc =
 		new UglifyJS.AST_Function({
 			argnames: [
@@ -19,6 +20,8 @@
 							)
 						})
 					);
+					//assert.strictEqual(true, 0 !== r['definitions'].length);
+					//return r;
 					if (0 !== r['definitions'].length) { return r; }
 				})(),
 				asmJsFuncList,

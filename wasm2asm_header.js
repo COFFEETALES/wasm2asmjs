@@ -5,7 +5,8 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-const UglifyJS = require('./node_modules/uglify-js');
+//const binaryen = require('binaryen');//require(path.join(__dirname, 'binaryen.js'));
+const UglifyJS = require('uglify-js');//require(path.join(path.dirname(process.execPath), 'node_modules', 'uglify-js'));
 
 const defs = {};
 
@@ -15,6 +16,7 @@ const output = {
 	'js':                   false,
 	'metadata':             false,
 	'optimize_for_js':      (
+		//undefined !== process.env['optimize_for_js'] ? Boolean(process.env['optimize_for_js']) : true
 		'0' !== process.env['asmjs_optimize_for_js']
 	),
 	'warnings': {

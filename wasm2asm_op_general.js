@@ -44,7 +44,7 @@ intOperators[ binaryen['XorInt32'] ] = true;
 intOperators[ binaryen['ShlInt32'] ] = true;
 intOperators[ binaryen['ShrSInt32'] ] = true;
 intOperators[ binaryen['ShrUInt32'] ] = true;
-intOperators[ binaryen['MulInt32'] ] = true;
+intOperators[ binaryen['MulInt32'] ] = true; // imul
 
 var uintOperators = {};
 uintOperators[binaryen['DivUInt32']] = true;
@@ -56,6 +56,12 @@ uintOperators[binaryen['GtUInt32']] = true;
 uintOperators[binaryen['GeUInt32']] = true;
 
 var visitBlockId = function(walker, funcItem, parentNodes, expr) {
+	//const br_if = getUnlinkedBr(expr.children);
+	//process.stderr.write(JSON.stringify(br_if)+'\n');
+	//if ( 0 !== br_if.length && '' === expr.name ) {
+	//	throw 'BlockId: 0 !== br_if.length && \'\' === expr.name';
+	//}
+
 	const labelValue = '' !== expr.name ? getLabelName(expr.name) : null;
 
 	const header = [];
@@ -78,6 +84,7 @@ var visitBlockId = function(walker, funcItem, parentNodes, expr) {
 				break;
 			}
 		})(expr.children);
+		//header = header.filter( (item) => undefined !== item );
 
 		const optimizedResult = (function blockOptimizer(blockType, blockName, children) {
 			if ( '' === blockName ) { return children; }
@@ -222,7 +229,7 @@ var visitBlockId = function(walker, funcItem, parentNodes, expr) {
 								{
 									parentArr.splice(id, 1);
 								}
-								else
+								else // if ( 0 !== afterArr.length )
 								{
 									parentArr.splice(id, parentArr.length-id,
 										decodedModule.if(
@@ -256,9 +263,11 @@ var visitBlockId = function(walker, funcItem, parentNodes, expr) {
 	const res = expr.children
 		.flatMap( (item) => walker( expr, item ) )
 		.filter( (item) => undefined !== item );
+		// ^ some children (like LoadId) can return «undef»
 
 	return header.concat(
 		'' !== expr.name ? (
+			//output['warnings']['labeledStatement'] = true,
 			new UglifyJS.AST_LabeledStatement({
 				label: new UglifyJS.AST_Label({ name: labelValue }),
 				body: new UglifyJS.AST_BlockStatement({ body: res })
@@ -308,6 +317,7 @@ var visitGlobalSetId = function(walker, funcItem, parentNodes, expr) {
 };
 
 var visitLocalGetId = function(walker, funcItem, parentNodes, expr, alignType) {
+	//if ( binaryen['i32'] !== expr.type ) throw '';
 	const node = new UglifyJS.AST_SymbolRef({
 		name: ['$', funcItem.shortname, '_', genStrId(expr.index)].join('')
 	});
@@ -343,6 +353,17 @@ var visitLocalGetId = function(walker, funcItem, parentNodes, expr, alignType) {
 	{
 		return makeAsmCoercion( node, localType, alignType );
 	}
+
+//	if ( /*binaryen['CallId'] === parentNodes[parentNodes.length-1].id ||*/
+//		isAlignmentNeeded(localType, alignType, parentNodes[parentNodes.length-1]) )
+//	{
+//		return makeAsmCoercion( node, localType, alignType );
+//		/*throw [
+//			'LocalGetId: getLocalType(', expr.index,
+//			') !== alignType (', getLocalType(funcItem.info, expr.index),
+//			' !== ',  alignType, ')'
+//		].join('');*/
+//	}
 	return node;
 };
 
@@ -352,18 +373,26 @@ var visitGlobalGetId = function(walker, funcItem, parentNodes, expr, alignType) 
 		name: ['$','g','_',global['encoded_name']].join('')
 	});
 	const globalType = global.type;
+//	if ( isAlignmentNeeded(globalType, alignType, parentNodes[parentNodes.length-1]) )
+//	{
+//		throw [
+//			'GlobalGetId: globalType !== alignType (',
+//			globalType, ' !== ', alignType, ')'
+//		].join('');
+//	}
 	return node;
 };
 
 var visitConstId = function(walker, funcItem, parentNodes, expr, alignType) {
-	if ( binaryen['auto'] !== alignType && expr.type !== alignType ) 
+	if ( binaryen['auto'] !== alignType && expr.type !== alignType )
 		throw ['ConstId: expr.type !== alignType (', expr.type, ' !== ', alignType, ')'].join('');
 /*
-	Peculiar wasm case:
+	The above correction follows the discovery of edge cases in WebAssembly (WAST):
 	(f32.lt
 	  (local.get $0)
 	  (f32.const 0)
 	)
+	This code snippet checks whether the floating-point value stored in local variable $0 is less than 0.
 */
 	if ( binaryen['i32'] === expr.type )
 	{
@@ -383,6 +412,8 @@ var visitConstId = function(walker, funcItem, parentNodes, expr, alignType) {
 				new UglifyJS.AST_Number({
 					value: expr.value,
 					start: {
+						//raw: expr.value.toString(10)
+						//raw: expr.value.toFixed(5)
 						raw: (
 							Math.floor(expr.value) === expr.value ?
 								expr.value.toFixed(1) : expr.value.toString(10)
@@ -408,7 +439,7 @@ var visitConstId = function(walker, funcItem, parentNodes, expr, alignType) {
 };
 
 var visitBinaryId = function(walker, funcItem, parentNodes, expr, alignType) {
-	if ( binaryen['auto'] !== alignType && expr.type !== alignType ) 
+	if ( binaryen['auto'] !== alignType && expr.type !== alignType )
 		throw ['BinaryId: expr.type !== alignType (',expr.type,' !== ',alignType,')'].join('');
 
 	const op = {};
@@ -431,6 +462,10 @@ var visitBinaryId = function(walker, funcItem, parentNodes, expr, alignType) {
 	op[ binaryen['MulFloat32'] ] = '*';
 	op[ binaryen['MulFloat64'] ] = '*';
 
+	//op[ binaryen['RotLInt32'] ] = '';
+	//op[ binaryen['RotRInt32'] ] = '';
+
+	// ci-dessous résultat considéré comme int
 	op[ binaryen['AndInt32'] ] = '&';
 	op[ binaryen['OrInt32'] ] = '|';
 	op[ binaryen['XorInt32'] ] = '^';
@@ -568,6 +603,7 @@ var visitBinaryId = function(walker, funcItem, parentNodes, expr, alignType) {
 		const parentExpr = parentNodes[parentNodes.length-1];
 
 		return ( true !== annotationList[expr.op] ||
+			/*parentExpr['is_imul'] || // ne serait pas compatible avec chrome */
 			(binaryen['StoreId'] === parentExpr.id && expr.srcPtr === parentExpr.value) ||
 			((binaryen['StoreId'] === parentExpr.id || binaryen['LoadId'] === parentExpr.id) &&
 				expr.srcPtr === parentExpr.ptr && 1 !== parentExpr.bytes) ||
@@ -586,6 +622,8 @@ var visitNopId = function(walker, funcItem, parentNodes, expr) {
 };
 
 var visitCallId = function(walker, funcItem, parentNodes, expr, alignType) {
+	//if ( binaryen['none'] !== expr.type )
+	//	throw 'CallId type';
 	const parentExpr = parentNodes[parentNodes.length-1];
 
 	const callFn = prepareFunction(funcItem.idx, expr.target);
@@ -624,6 +662,7 @@ var visitCallId = function(walker, funcItem, parentNodes, expr, alignType) {
 
 var visitCallIndirectId = function(walker, funcItem, parentNodes, expr, alignType) {
 	const parentExpr = parentNodes[parentNodes.length-1];
+	//process.stderr.write('binaryen: ' + expr.target + '\n');
 	const funcType = [expr.type].concat(
 		expr.operands.map( e => (e = binaryen.getExpressionInfo(e), e.type) )
 	);
@@ -642,7 +681,7 @@ var visitCallIndirectId = function(walker, funcItem, parentNodes, expr, alignTyp
 	);
 
 	const ftable = prepareFunctionTable(funcItem.idx, funcType[0], funcType.slice(1), funcTypeSignature.join(''));
-	
+
 	let res = new UglifyJS.AST_Call({
 		expression: new UglifyJS.AST_Sub({
 			expression: new UglifyJS.AST_SymbolRef({
@@ -653,6 +692,7 @@ var visitCallIndirectId = function(walker, funcItem, parentNodes, expr, alignTyp
 				decodedModule['i32'].and(
 					expr.target, decodedModule['i32'].const(ftable['funcList'].length-1)
 				),
+				//expr, expr.target
 			)
 		}),
 		args: expr.operands.map( e => walker( expr, e ) )
@@ -682,6 +722,12 @@ var visitUnaryId = function(walker, funcItem, parentNodes, expr) {
 			expression: node
 		});
 	}
+	/*if ( binaryen['TruncSFloat32ToInt32'] === expr.op )
+	{
+		return (
+			makeAsmCoercion( walker( expr, expr.value ), binaryen['f32'], binaryen['i32'] )
+		);
+	}*/
 	if ( binaryen['NegFloat32'] === expr.op || binaryen['NegFloat64'] === expr.op )
 	{
 		const node = walker( expr, expr.value );
@@ -767,6 +813,7 @@ var visitUnaryId = function(walker, funcItem, parentNodes, expr) {
 	if ( binaryen['DemoteFloat64'] === expr.op )
 	{
 		return makeAsmCoercion( walker( expr, expr.value ), binaryen['f64'], binaryen['f32'] );
+		//return makeAsmAnnotation( walker(expr, expr.value), binaryen['f32']);
 	}
 	if ( binaryen['ConvertSInt32ToFloat32'] === expr.op || binaryen['ConvertUInt32ToFloat32'] === expr.op ||
 		binaryen['ConvertSInt32ToFloat64'] === expr.op || binaryen['ConvertUInt32ToFloat64'] === expr.op )
@@ -811,12 +858,29 @@ var visitReturnId = function(walker, funcItem, parentNodes, expr) {
 	}
 
 	const leftValue = walker( expr, expr.value, funcItem.info['results'] );
+/*
+	const childExpr = binaryen.getExpressionInfo( expr.value );
+	let cond = (function(){
+		if ( binaryen['BinaryId'] === childExpr.id )
+			return false;
+		if ( binaryen['LoadId'] === childExpr.id )
+			return false;
+		return true;
+	})();
+*/
 	return new UglifyJS.AST_Return({
+/*
+		value: true === cond ?
+			makeAsmAnnotation(leftValue, funcItem.info['results']) : leftValue
+*/
 		value: leftValue
 	});
 };
 
 var visitDropId = function(walker, funcItem, parentNodes, expr) {
+	/*return new UglifyJS.AST_Number({
+		value: 0x100
+	});*/
 	return walker( expr, expr.value );
 };
 
