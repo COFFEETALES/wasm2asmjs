@@ -33,7 +33,7 @@
 
   const RunFile = function (p) {
     vm.runInContext(
-      fs.readFileSync(path.resolve(__dirname, p), { encoding: 'utf-8' }),
+      fs.readFileSync(path.resolve(__dirname, p), {encoding: 'utf-8'}),
       ctx,
       p
     );

@@ -17,7 +17,7 @@
         operator: '|',
         right: new UglifyJS.AST_Number({
           value: 0,
-          start: { raw: '0' }
+          start: {raw: '0'}
         })
       });
     } else if (binaryen['f32'] === resultType) {
@@ -61,7 +61,7 @@
               operator: '>>>',
               right: new UglifyJS.AST_Number({
                 value: 0,
-                start: { raw: '0' }
+                start: {raw: '0'}
               })
             })
           ]
@@ -84,7 +84,7 @@
               operator: '|',
               right: new UglifyJS.AST_Number({
                 value: 0,
-                start: { raw: '0' }
+                start: {raw: '0'}
               })
             })
           ]
@@ -98,7 +98,7 @@
             operator: '|',
             right: new UglifyJS.AST_Number({
               value: 0,
-              start: { raw: '0' }
+              start: {raw: '0'}
             })
           })
         });
@@ -128,7 +128,7 @@
               name: ['$', 'floor'].join('')
             }),
             args: [
-              new UglifyJS.AST_UnaryPrefix({ operator: '+', expression: node })
+              new UglifyJS.AST_UnaryPrefix({operator: '+', expression: node})
             ]
           })
         });
@@ -202,10 +202,10 @@
           //process.stderr.write('TYPE: ' + JSON.stringify(funcInfo) + '\n');
           body[body.length] = new UglifyJS.AST_SimpleStatement({
             body: new UglifyJS.AST_Assign({
-              left: new UglifyJS.AST_SymbolRef({ name: paramName }),
+              left: new UglifyJS.AST_SymbolRef({name: paramName}),
               operator: '=',
               right: makeAsmAnnotation(
-                new UglifyJS.AST_SymbolRef({ name: paramName }),
+                new UglifyJS.AST_SymbolRef({name: paramName}),
                 arr[i]
               )
             })
@@ -391,7 +391,7 @@
               );
             const args = [
               x,
-              { info: funcInfo, idx: funcIdx, shortname: funcShortname },
+              {info: funcInfo, idx: funcIdx, shortname: funcShortname},
               parentNodes,
               expr,
               undefined !== arguments[2] ? arguments[2] : binaryen['auto']
@@ -415,7 +415,7 @@
               parentNodes.length -= parentExpr.length;
               return resVal;
             }
-          })({ id: binaryen['BlockId'] }, funcInfo['body'])
+          })({id: binaryen['BlockId']}, funcInfo['body'])
         );
       }
 

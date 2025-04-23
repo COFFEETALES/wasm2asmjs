@@ -23,7 +23,7 @@
       fs.existsSync(absFilePath),
       ['«', absFilePath, '» not found'].join('')
     );
-    return fs.readFileSync(absFilePath, { encoding: 'utf8' });
+    return fs.readFileSync(absFilePath, {encoding: 'utf8'});
   };
 
   if (undefined !== defs['NDEBUG']) {
@@ -270,7 +270,7 @@
                     : 'asmjs_memory'
               }),
               value: new UglifyJS.AST_New({
-                expression: new UglifyJS.AST_SymbolRef({ name: 'ArrayBuffer' }),
+                expression: new UglifyJS.AST_SymbolRef({name: 'ArrayBuffer'}),
                 args: [
                   new UglifyJS.AST_Number({
                     value:
@@ -290,7 +290,7 @@
                 name: 'i32_array'
               }),
               value: new UglifyJS.AST_New({
-                expression: new UglifyJS.AST_SymbolRef({ name: 'Int32Array' }),
+                expression: new UglifyJS.AST_SymbolRef({name: 'Int32Array'}),
                 args: [
                   new UglifyJS.AST_SymbolRef({
                     name:
@@ -343,7 +343,7 @@
             retValue[retValue.length] = new UglifyJS.AST_SimpleStatement({
               body: new UglifyJS.AST_Call({
                 expression: new UglifyJS.AST_Dot({
-                  expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
+                  expression: new UglifyJS.AST_SymbolRef({name: 'i32_array'}),
                   property: 'set'
                 }),
                 args: [
@@ -356,7 +356,7 @@
                           endPoint - lastIndex
                         )
                       )
-                      .map(j => new UglifyJS.AST_Number({ value: j }))
+                      .map(j => new UglifyJS.AST_Number({value: j}))
                   }),
                   new UglifyJS.AST_Number({
                     value: Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
@@ -371,7 +371,7 @@
             retValue[retValue.length] = new UglifyJS.AST_SimpleStatement({
               body: new UglifyJS.AST_Call({
                 expression: new UglifyJS.AST_Dot({
-                  expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
+                  expression: new UglifyJS.AST_SymbolRef({name: 'i32_array'}),
                   property: 'fill'
                 }),
                 args: [
@@ -448,7 +448,7 @@
       }),
       value: new UglifyJS.AST_Number({
         value: num,
-        start: { raw: num.toString(10) }
+        start: {raw: num.toString(10)}
       })
     });
   };
@@ -505,7 +505,7 @@
       const funcPtr = decodedModule.getFunction(expInfo.value);
       const funcInfo = binaryen.getFunctionInfo(funcPtr);
 
-      return Object.assign(funcInfo, { 'ast': null });
+      return Object.assign(funcInfo, {'ast': null});
     })
     .filter(e => undefined !== e);
 

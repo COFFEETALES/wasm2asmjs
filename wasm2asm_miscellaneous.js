@@ -171,7 +171,7 @@ print( simplify_logic( my_op, None, True, False ) )
         if (binaryen['LoopId'] === expr.id || binaryen['BlockId'] === expr.id) {
           let res;
           return (
-            (stack[stack.length] = Object.assign(expr, { 'srcPtr': ptr })),
+            (stack[stack.length] = Object.assign(expr, {'srcPtr': ptr})),
             (res =
               binaryen['LoopId'] === expr.id
                 ? x(expr.body)
@@ -183,7 +183,7 @@ print( simplify_logic( my_op, None, True, False ) )
         if (binaryen['IfId'] === expr.id) {
           let res = [];
           return (
-            (stack[stack.length] = Object.assign(expr, { 'srcPtr': ptr })),
+            (stack[stack.length] = Object.assign(expr, {'srcPtr': ptr})),
             (res[res.length] = x(expr.ifTrue)),
             (res[res.length] = x(expr.ifFalse)),
             --stack.length,
@@ -219,10 +219,10 @@ print( simplify_logic( my_op, None, True, False ) )
     };
 
     return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({ name: ['$', o[str]].join('') }),
+      name: new UglifyJS.AST_SymbolVar({name: ['$', o[str]].join('')}),
       value: new UglifyJS.AST_Dot({
         expression: new UglifyJS.AST_Dot({
-          expression: new UglifyJS.AST_SymbolRef({ name: 'stdlib' }),
+          expression: new UglifyJS.AST_SymbolRef({name: 'stdlib'}),
           property: 'Math'
         }),
         property: o[str]
@@ -243,11 +243,11 @@ print( simplify_logic( my_op, None, True, False ) )
     };
 
     return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({ name: ['$', str].join('') }),
+      name: new UglifyJS.AST_SymbolVar({name: ['$', str].join('')}),
       value: new UglifyJS.AST_New({
-        args: [new UglifyJS.AST_SymbolRef({ name: 'buffer' })],
+        args: [new UglifyJS.AST_SymbolRef({name: 'buffer'})],
         expression: new UglifyJS.AST_Dot({
-          expression: new UglifyJS.AST_SymbolRef({ name: 'stdlib' }),
+          expression: new UglifyJS.AST_SymbolRef({name: 'stdlib'}),
           property: o[str]
         })
       })
@@ -387,7 +387,7 @@ const genStrId = function (num) {
       //decodedModule.addTable('t0', 1, 0xffffffff);
       //const ftable = decodedModule.getTable('t0');
 
-      const retValue = { 'segments': [] };
+      const retValue = {'segments': []};
       assert.strictEqual(
         true,
         decodedModule.getNumTables() <= 1,
@@ -547,7 +547,7 @@ const genStrId = function (num) {
             name: ['$', 'if', '_', item['encoded_name']].join('')
           }),
           value: new UglifyJS.AST_Dot({
-            expression: new UglifyJS.AST_SymbolRef({ name: 'foreign' }),
+            expression: new UglifyJS.AST_SymbolRef({name: 'foreign'}),
             property: item.base
           })
         });

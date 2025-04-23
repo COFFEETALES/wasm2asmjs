@@ -62,9 +62,9 @@
     expr['nested'] = false;
     expr['nameList'] = [expr.name];
 
-    const blockExpr = binaryen.getExpressionInfo(expr.body);
+    let blockExpr = binaryen.getExpressionInfo(expr.body);
     if (binaryen['BlockId'] !== blockExpr.id)
-      throw 'LoopId: BlockId is not used as child.';
+      blockExpr = binaryen.getExpressionInfo(decodedModule.block(null, [expr.body]));
     if ('' !== blockExpr.name)
       expr['nameList'][expr['nameList'].length] = blockExpr.name;
 

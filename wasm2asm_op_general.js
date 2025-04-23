@@ -311,8 +311,8 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
     '' !== expr.name
       ? //output['warnings']['labeledStatement'] = true,
         new UglifyJS.AST_LabeledStatement({
-          label: new UglifyJS.AST_Label({ name: labelValue }),
-          body: new UglifyJS.AST_BlockStatement({ body: res })
+          label: new UglifyJS.AST_Label({name: labelValue}),
+          body: new UglifyJS.AST_BlockStatement({body: res})
         })
       : res
   );
@@ -456,7 +456,7 @@ var visitConstId = function (walker, funcItem, parentNodes, expr, alignType) {
   if (binaryen['i32'] === expr.type) {
     return new UglifyJS.AST_Number({
       value: expr.value,
-      start: { raw: expr.value.toString(10) }
+      start: {raw: expr.value.toString(10)}
     });
   } else if (binaryen['f32'] === expr.type) {
     addAsmJsHeader('Math_fround');
@@ -558,7 +558,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
 
   if (binaryen['MulInt32'] === expr.op) {
     addAsmJsHeader('Math_imul');
-    const parentExpr = { 'id': 'CallId', 'type': expr['type'], 'is_imul': 1 };
+    const parentExpr = {'id': 'CallId', 'type': expr['type'], 'is_imul': 1};
     return new UglifyJS.AST_Call({
       expression: new UglifyJS.AST_SymbolRef({
         name: ['$', 'imul'].join('')
@@ -621,7 +621,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
       return new UglifyJS.AST_Binary({
         left: walker(expr, ptr, binaryen['i32']),
         operator: '>>>',
-        right: new UglifyJS.AST_Number({ value: 0 })
+        right: new UglifyJS.AST_Number({value: 0})
       });
     }
     //
@@ -720,7 +720,7 @@ var visitCallId = function (walker, funcItem, parentNodes, expr, alignType) {
     return callFn['name'];
   })();
 
-  let res = new UglifyJS.AST_SymbolRef({ name: ['$', callFnSurname].join('') });
+  let res = new UglifyJS.AST_SymbolRef({name: ['$', callFnSurname].join('')});
   if ('variable' !== callFn['std']) {
     res = new UglifyJS.AST_Call({
       expression: res,
@@ -735,7 +735,7 @@ var visitCallId = function (walker, funcItem, parentNodes, expr, alignType) {
 
   return binaryen['DropId'] === parentExpr.id ||
     binaryen['BlockId'] === parentExpr.id
-    ? new UglifyJS.AST_SimpleStatement({ body: res })
+    ? new UglifyJS.AST_SimpleStatement({body: res})
     : res;
 };
 
@@ -791,7 +791,7 @@ var visitCallIndirectId = function (
 
   return binaryen['DropId'] === parentExpr.id ||
     binaryen['BlockId'] === parentExpr.id
-    ? new UglifyJS.AST_SimpleStatement({ body: res })
+    ? new UglifyJS.AST_SimpleStatement({body: res})
     : res;
 };
 
@@ -907,7 +907,7 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
         binaryen['i32']
       ),
       operator: '>>>',
-      right: new UglifyJS.AST_Number({ value: 0 })
+      right: new UglifyJS.AST_Number({value: 0})
     });
   }
   if (
@@ -977,7 +977,7 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
 
 var visitReturnId = function (walker, funcItem, parentNodes, expr) {
   if (0 === expr.value) {
-    return new UglifyJS.AST_Return({ value: null });
+    return new UglifyJS.AST_Return({value: null});
   }
 
   const leftValue = walker(expr, expr.value, funcItem.info['results']);

@@ -92,7 +92,7 @@
               operator: '>>',
               right: new UglifyJS.AST_Number({
                 value: shr[expr.bytes],
-                start: { raw: shr[expr.bytes].toString(10) }
+                start: {raw: shr[expr.bytes].toString(10)}
               })
             })
     });
@@ -187,7 +187,7 @@
                   operator: '>>',
                   right: new UglifyJS.AST_Number({
                     value: shr[expr.bytes],
-                    start: { raw: shr[expr.bytes].toString(10) }
+                    start: {raw: shr[expr.bytes].toString(10)}
                   })
                 })
         }),

@@ -4,11 +4,11 @@
   // http://lisperator.net/uglifyjs/transform
   let resFunc = new UglifyJS.AST_Function({
     argnames: [
-      new UglifyJS.AST_SymbolFunarg({ name: 'stdlib' }),
-      new UglifyJS.AST_SymbolFunarg({ name: 'foreign' }),
-      new UglifyJS.AST_SymbolFunarg({ name: 'buffer' })
+      new UglifyJS.AST_SymbolFunarg({name: 'stdlib'}),
+      new UglifyJS.AST_SymbolFunarg({name: 'foreign'}),
+      new UglifyJS.AST_SymbolFunarg({name: 'buffer'})
     ],
-    body: [new UglifyJS.AST_Directive({ value: 'use asm', quote: "'" })]
+    body: [new UglifyJS.AST_Directive({value: 'use asm', quote: "'"})]
       .concat(
         (function () {
           const r = new UglifyJS.AST_Var({
