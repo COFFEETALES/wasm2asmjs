@@ -3,7 +3,7 @@
 {
   //
   //
-  //	var decodedModule = binaryen.readBinary( dataBuffer );
+  //  var decodedModule = binaryen.readBinary( dataBuffer );
 
   const GetFileBuffer = rel => {
     let absFilePath = path.join(process.cwd(), rel);
@@ -131,26 +131,26 @@
             ]);
           }
         }
-        //					{
-        //						const funcInfo = binaryen.getFunctionInfo( funcPtr );
-        //						if ( '' === funcInfo['base'] ) {
-        //							/*const b = decodedModule.block(null, [
-        //								decodedModule.return(
-        //									decodedModule.f32.const(1.5)
-        //								)
-        //							])*/
+        //{
+        //  const funcInfo = binaryen.getFunctionInfo( funcPtr );
+        //  if ( '' === funcInfo['base'] ) {
+        //    /*const b = decodedModule.block(null, [
+        //      decodedModule.return(
+        //        decodedModule.f32.const(1.5)
+        //      )
+        //    ])*/
         //
-        //							// self['addFunction'] = function(name, params, results, varTypes, body)
+        //    // self['addFunction'] = function(name, params, results, varTypes, body)
         //
-        //							/*
-        //							decodedModule.removeFunction( funcInfo['name'] );
-        //							decodedModule.addFunction(
-        //								funcInfo['name'], funcInfo['params'],
-        //									funcInfo['results'], funcInfo['vars'], funcInfo['body']
-        //							);
-        //							*/
-        //						}
-        //					}
+        //    /*
+        //    decodedModule.removeFunction( funcInfo['name'] );
+        //    decodedModule.addFunction(
+        //      funcInfo['name'], funcInfo['params'],
+        //        funcInfo['results'], funcInfo['vars'], funcInfo['body']
+        //    );
+        //    */
+        //  }
+        //}
       } // getNumFunctions 0..len
     ); // getNumFunctions loop
   }
@@ -167,13 +167,13 @@
     //delete defs['NDEBUG'];
     //defs['_DEBUG'] = 1;
 
-    //		const mangle =
-    //			('asm.js' === mode ?
-    //				/*{ reserved: ['stdlib', 'foreign', 'buffer'] }*/false :
-    //					(undefined !== defs['NDEBUG']));
+    //    const mangle =
+    //      ('asm.js' === mode ?
+    //        /*{ reserved: ['stdlib', 'foreign', 'buffer'] }*/false :
+    //          (undefined !== defs['NDEBUG']));
 
-    //		ast.figure_out_scope();
-    //		process.stderr.write( ''+ast.print_to_string()+'\n' )
+    //    ast.figure_out_scope();
+    //    process.stderr.write( ''+ast.print_to_string()+'\n' )
     const res = UglifyJS.minify(ast, {
       // print_to_string is mandatory; otherwise, issues may occur randomly!
       parse: {},
@@ -183,10 +183,10 @@
         ast: false,
         code: true,
         beautify: true /*(
-					'asm.js' === mode && (
-						undefined !== defs['_DEBUG'] || undefined !== defs['ASMJS_BEAUTIFY']
-					)
-				),*/,
+          'asm.js' === mode && (
+            undefined !== defs['_DEBUG'] || undefined !== defs['ASMJS_BEAUTIFY']
+          )
+        ),*/,
         semicolons: true,
         keep_quoted_props: true,
         quote_style: 3
@@ -306,29 +306,29 @@
       ].concat(
         (function () {
           /*
-						return [
-						new UglifyJS.AST_SimpleStatement({
-							body: new UglifyJS.AST_Call({
-								expression: new UglifyJS.AST_Dot({
-									expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
-									property: 'set'
-								}),
-								args: [
-									new UglifyJS.AST_Array({
-										elements: Array.prototype.slice.call(
-											new Int32Array(byteArray.buffer)
-										).map(
-											(i) => new UglifyJS.AST_Number({ value: i })
-										)
-									}),
-									new UglifyJS.AST_Number({
-										value: Math.trunc( arr[0]['byteOffset']/4 )
-									})
-								]
-							})
-						})
-						];
-*/
+            return [
+            new UglifyJS.AST_SimpleStatement({
+              body: new UglifyJS.AST_Call({
+                expression: new UglifyJS.AST_Dot({
+                  expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
+                  property: 'set'
+                }),
+                args: [
+                  new UglifyJS.AST_Array({
+                    elements: Array.prototype.slice.call(
+                      new Int32Array(byteArray.buffer)
+                    ).map(
+                      (i) => new UglifyJS.AST_Number({ value: i })
+                    )
+                  }),
+                  new UglifyJS.AST_Number({
+                    value: Math.trunc( arr[0]['byteOffset']/4 )
+                  })
+                ]
+              })
+            })
+            ];
+          */
 
           var retValue = [];
 

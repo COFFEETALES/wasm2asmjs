@@ -3,7 +3,28 @@ coffeetales.net/WASM2ASMJS
 
 This tool is primarily intended for internal use. At the moment, the README is not designed to provide extensive explanations. However, we welcome contributions, so please feel free to submit a Pull Request if you have any additions or improvements you would like to share.
 
-### Browser Compatibility for Optimal Performance
+Roadmap
+-------
+
+**The journey isn't over — wasm2asmjs still has a bright future ahead!**
+
+Planned improvements:
+
+1. 🔄 Replace `UglifyJS` with `@babel/generator` for modern JS codegen.
+2. 🧹 Use Closure Compiler for:
+   - Advanced JS compilation
+   - Linting and minification
+3. 🌐 Add a PHP backend for wasm-to-PHP transpilation (experimental).
+4. ⚙️ Set up GitHub Actions to:
+   - Run tests on push/PR
+   - Check linting and build status
+5. 📦 Publish to npm for CLI usage.
+6. 🧪 Add example `.wasm → .asm.js` demos.
+7. 📉 Document wasm vs asm.js performance and size differences.
+8. 🖼 Include live/browser demo for legacy support (e.g. IE11).
+
+Browser Compatibility for Optimal Performance
+---------------------------------------------
 
 - **EdgeHTML**: Compatible with EdgeHTML starting from version 13. This ensures that users of Microsoft Edge can utilize the full capabilities of the tool.
 - **Chromium**: The ASM.JS validator has been available since version 61 of Chromium. This allows for robust performance and validation when using browsers based on the Chromium engine, such as Google Chrome.

@@ -108,19 +108,19 @@
       if (coercionTypes['i32'] === resultType) {
         addAsmJsHeader('Math_floor');
         /*return new UglifyJS.AST_Call({
-					expression: new UglifyJS.AST_SymbolRef({
-						name: ['$', 'floor'].join('')
-					}),
-					args: [
-						new UglifyJS.AST_Binary({
-							left: node,
-							operator: '|',
-							right: new UglifyJS.AST_Number({
-								value: 0, start: { raw: '0' }
-							})
-						})
-					]
-				});*/
+          expression: new UglifyJS.AST_SymbolRef({
+            name: ['$', 'floor'].join('')
+          }),
+          args: [
+            new UglifyJS.AST_Binary({
+              left: node,
+              operator: '|',
+              right: new UglifyJS.AST_Number({
+                value: 0, start: { raw: '0' }
+              })
+            })
+          ]
+        });*/
         return new UglifyJS.AST_UnaryPrefix({
           operator: '~~',
           expression: new UglifyJS.AST_Call({
@@ -217,8 +217,8 @@
         const funcBody = binaryen.getExpressionInfo(funcInfo['body']);
         let c = [];
         if (binaryen['BlockId'] === funcBody.id && '' === funcBody.name) {
-          //					if ( '' !== funcBody['name'] )
-          //					{ throw 'binaryen[\'BlockId\'] === funcBody.id && \'\' !== funcBody.name'; }
+          //if ( '' !== funcBody['name'] )
+          //{ throw 'binaryen[\'BlockId\'] === funcBody.id && \'\' !== funcBody.name'; }
 
           c = funcBody['children'];
 
@@ -311,13 +311,13 @@
                           if (binaryen['ConstId'] === v['id']) {
                             c.splice(j, 1);
                             /*
-														if ( binaryen['i32'] !== i ) {
-															return (
-																Math.floor(v['value']) === v['value'] ?
-																	v['value'].toFixed(1) : v['value'].toString(10)
-															);
-														}
-														*/
+                            if ( binaryen['i32'] !== i ) {
+                              return (
+                                Math.floor(v['value']) === v['value'] ?
+                                  v['value'].toFixed(1) : v['value'].toString(10)
+                              );
+                            }
+                            */
                             return v['value'];
                           }
                           return;
@@ -342,10 +342,10 @@
 
         if (binaryen['BlockId'] === funcBody.id) {
           /*funcInfo['body'] = (
-						'' !== funcBody.name ?
-							decodedModule.block('', [funcInfo['body']], funcBody.type) :
-							decodedModule.block('', funcBody.children, funcBody.type)
-					);*/
+            '' !== funcBody.name ?
+              decodedModule.block('', [funcInfo['body']], funcBody.type) :
+              decodedModule.block('', funcBody.children, funcBody.type)
+          );*/
           funcInfo['body'] = decodedModule.block(
             funcBody.name,
             funcBody.children,
