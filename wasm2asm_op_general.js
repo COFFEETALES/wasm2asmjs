@@ -58,7 +58,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   //const br_if = getUnlinkedBr(expr.children);
   //process.stderr.write(JSON.stringify(br_if)+'\n');
   //if ( 0 !== br_if.length && '' === expr.name ) {
-  //	throw 'BlockId: 0 !== br_if.length && \'\' === expr.name';
+  //  throw 'BlockId: 0 !== br_if.length && \'\' === expr.name';
   //}
 
   const labelValue = '' !== expr.name ? getLabelName(expr.name) : null;
@@ -401,16 +401,16 @@ var visitLocalGetId = function (
     return makeAsmCoercion(node, localType, alignType);
   }
 
-  //	if ( /*binaryen['CallId'] === parentNodes[parentNodes.length-1].id ||*/
-  //		isAlignmentNeeded(localType, alignType, parentNodes[parentNodes.length-1]) )
-  //	{
-  //		return makeAsmCoercion( node, localType, alignType );
-  //		/*throw [
-  //			'LocalGetId: getLocalType(', expr.index,
-  //			') !== alignType (', getLocalType(funcItem.info, expr.index),
-  //			' !== ',  alignType, ')'
-  //		].join('');*/
-  //	}
+  //if ( /*binaryen['CallId'] === parentNodes[parentNodes.length-1].id ||*/
+  //  isAlignmentNeeded(localType, alignType, parentNodes[parentNodes.length-1]) )
+  //{
+  //  return makeAsmCoercion( node, localType, alignType );
+  //  /*throw [
+  //    'LocalGetId: getLocalType(', expr.index,
+  //    ') !== alignType (', getLocalType(funcItem.info, expr.index),
+  //    ' !== ',  alignType, ')'
+  //  ].join('');*/
+  //}
   return node;
 };
 
@@ -426,13 +426,13 @@ var visitGlobalGetId = function (
     name: ['$', 'g', '_', global['encoded_name']].join('')
   });
   const globalType = global.type;
-  //	if ( isAlignmentNeeded(globalType, alignType, parentNodes[parentNodes.length-1]) )
-  //	{
-  //		throw [
-  //			'GlobalGetId: globalType !== alignType (',
-  //			globalType, ' !== ', alignType, ')'
-  //		].join('');
-  //	}
+  //if ( isAlignmentNeeded(globalType, alignType, parentNodes[parentNodes.length-1]) )
+  //{
+  //  throw [
+  //    'GlobalGetId: globalType !== alignType (',
+  //    globalType, ' !== ', alignType, ')'
+  //  ].join('');
+  //}
   return node;
 };
 
@@ -446,13 +446,13 @@ var visitConstId = function (walker, funcItem, parentNodes, expr, alignType) {
       ')'
     ].join('');
   /*
-	The above correction follows the discovery of edge cases in WebAssembly (WAST):
-	(f32.lt
-	  (local.get $0)
-	  (f32.const 0)
-	)
-	This code snippet checks whether the floating-point value stored in local variable $0 is less than 0.
-*/
+  The above correction follows the discovery of edge cases in WebAssembly (WAST):
+  (f32.lt
+    (local.get $0)
+    (f32.const 0)
+  )
+  This code snippet checks whether the floating-point value stored in local variable $0 is less than 0.
+  */
   if (binaryen['i32'] === expr.type) {
     return new UglifyJS.AST_Number({
       value: expr.value,
@@ -594,17 +594,17 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
     (binaryen['XorInt32'] === expr.op || binaryen['AndInt32'] === expr.op)
   ) {
     /*
-		const right = binaryen.getExpressionInfo(expr.right);
-		if ( binaryen['ConstId'] === right.id &&
-			binaryen['i32'] === right.type &&
-			1 === right.value )
-		{
-			const left = binaryen.getExpressionInfo(expr.left);
-			if ( binaryen['BinaryId'] === left.id && true === cmpOperators[left.op] )
-			{
-			}
-		}
-		*/
+    const right = binaryen.getExpressionInfo(expr.right);
+    if ( binaryen['ConstId'] === right.id &&
+      binaryen['i32'] === right.type &&
+      1 === right.value )
+    {
+      const left = binaryen.getExpressionInfo(expr.left);
+      if ( binaryen['BinaryId'] === left.id && true === cmpOperators[left.op] )
+      {
+      }
+    }
+    */
   }
   //
   ////
@@ -703,7 +703,7 @@ var visitNopId = function (walker, funcItem, parentNodes, expr) {
 
 var visitCallId = function (walker, funcItem, parentNodes, expr, alignType) {
   //if ( binaryen['none'] !== expr.type )
-  //	throw 'CallId type';
+  //  throw 'CallId type';
   const parentExpr = parentNodes[parentNodes.length - 1];
 
   const callFn = prepareFunction(funcItem.idx, expr.target);
@@ -796,8 +796,8 @@ var visitCallIndirectId = function (
 };
 
 var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
-  //+	Unary addition: type conversion to double
-  //-	Sign inversion: type correction required
+  //+ Unary addition: type conversion to double
+  //- Sign inversion: type correction required
   if (binaryen['EqZInt32'] === expr.op) {
     if (true === output['optimize_for_js']) {
       const exprSrc = createEqz(expr.value);
@@ -818,11 +818,11 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
     });
   }
   /*if ( binaryen['TruncSFloat32ToInt32'] === expr.op )
-	{
-		return (
-			makeAsmCoercion( walker( expr, expr.value ), binaryen['f32'], binaryen['i32'] )
-		);
-	}*/
+  {
+    return (
+      makeAsmCoercion( walker( expr, expr.value ), binaryen['f32'], binaryen['i32'] )
+    );
+  }*/
   if (
     binaryen['NegFloat32'] === expr.op ||
     binaryen['NegFloat64'] === expr.op
@@ -966,12 +966,12 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
     })()
 
     /*, '\n'
-		, '(TruncSFloat32ToInt32: ', binaryen['TruncSFloat32ToInt32'], ')'
-		, '\n'
-		, '(FloorFloat32: ', binaryen['FloorFloat32'], ')'
-		, '\n'
-		, '(PopcntInt32: ', binaryen['PopcntInt32'], ')'
-		, '\n'*/
+    , '(TruncSFloat32ToInt32: ', binaryen['TruncSFloat32ToInt32'], ')'
+    , '\n'
+    , '(FloorFloat32: ', binaryen['FloorFloat32'], ')'
+    , '\n'
+    , '(PopcntInt32: ', binaryen['PopcntInt32'], ')'
+    , '\n'*/
   ].join('');
 };
 
@@ -982,28 +982,28 @@ var visitReturnId = function (walker, funcItem, parentNodes, expr) {
 
   const leftValue = walker(expr, expr.value, funcItem.info['results']);
   /*
-	const childExpr = binaryen.getExpressionInfo( expr.value );
-	let cond = (function(){
-		if ( binaryen['BinaryId'] === childExpr.id )
-			return false;
-		if ( binaryen['LoadId'] === childExpr.id )
-			return false;
-		return true;
-	})();
-*/
+  const childExpr = binaryen.getExpressionInfo( expr.value );
+  let cond = (function(){
+    if ( binaryen['BinaryId'] === childExpr.id )
+      return false;
+    if ( binaryen['LoadId'] === childExpr.id )
+      return false;
+    return true;
+  })();
+  */
   return new UglifyJS.AST_Return({
     /*
-		value: true === cond ?
-			makeAsmAnnotation(leftValue, funcItem.info['results']) : leftValue
-*/
+    value: true === cond ?
+      makeAsmAnnotation(leftValue, funcItem.info['results']) : leftValue
+    */
     value: leftValue
   });
 };
 
 var visitDropId = function (walker, funcItem, parentNodes, expr) {
   /*return new UglifyJS.AST_Number({
-		value: 0x100
-	});*/
+    value: 0x100
+  });*/
   return walker(expr, expr.value);
 };
 

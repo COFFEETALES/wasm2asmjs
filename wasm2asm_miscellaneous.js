@@ -362,13 +362,14 @@ const genStrId = function (num) {
 
         const res = Object.assign(
           /*decodedModule.runPassesOnFunction( funcInfo.name, [
-							'flatten',
-							'simplify-locals-notee-nostructure',
-							'reorder-locals',
-							'remove-unused-names',
-							'vacuum'
-						]),
-						binaryen.getFunctionInfo( funcPtr )*/
+              'flatten',
+              'simplify-locals-notee-nostructure',
+              'reorder-locals',
+              'remove-unused-names',
+              'vacuum'
+            ]),
+            binaryen.getFunctionInfo( funcPtr )
+          */
           funcInfo,
           {
             'ast': null,
@@ -535,7 +536,7 @@ const genStrId = function (num) {
     if (name !== res['name']) throw '';
 
     return res;
-    //		throw ['ProcessGlobal: ',name].join('');
+    //throw ['ProcessGlobal: ',name].join('');
   };
 
   var processAsmJsImports = function () {
