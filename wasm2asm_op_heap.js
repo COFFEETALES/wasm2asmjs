@@ -116,13 +116,15 @@
               parentNode.op <= binaryen['MaxFloat64'])),
         binaryen['LocalSetId'] === parentNode.id,
         binaryen['CallId'] === parentNode.id,
-        binaryen['LoadId'] === parentNode.id && expr.srcPtr === parentNode.ptr,
+        //binaryen['LoadId'] === parentNode.id && expr.srcPtr === parentNode.ptr,
+        binaryen['LoadId'] === expr.id,
         binaryen['UnaryId'] === parentNode.id &&
           binaryen['EqZInt32'] === parentNode.op,
         binaryen['SelectId'] === parentNode.id,
         binaryen['LoopId'] === parentNode.id,
         (binaryen['IfId'] === parentNode.id || binaryen['BreakId']) &&
-          expr.srcPtr === parentNode.condition
+          expr.srcPtr === parentNode.condition,
+        binaryen['ReturnId'] === parentNode.id
       ];
 
       if (-1 !== checks.indexOf(true)) {

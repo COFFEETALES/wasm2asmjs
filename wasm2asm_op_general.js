@@ -689,6 +689,8 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
         1 !== parentExpr.bytes) ||
       (binaryen['DivSInt32'] !== expr.op &&
         binaryen['DivUInt32'] !== expr.op &&
+        binaryen['RemSInt32'] !== expr.op &&
+        binaryen['RemUInt32'] !== expr.op &&
         binaryen['BinaryId'] === parentExpr.id &&
         binaryen['i32'] === expr.type &&
         !cmpOperators[parentExpr.op])
@@ -796,6 +798,7 @@ var visitCallIndirectId = function (
 };
 
 var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
+  const parentNode = parentNodes[parentNodes.length - 1];
   //+ Unary addition: type conversion to double
   //- Sign inversion: type correction required
   if (binaryen['EqZInt32'] === expr.op) {
@@ -900,12 +903,16 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
       binaryen['TruncUFloat32ToInt32'] === expr.op
         ? binaryen['f32']
         : binaryen['f64'];
+    const leftSide = makeAsmCoercion(
+      walker(expr, expr.value),
+      fromType,
+      binaryen['i32']
+    );
+    if (binaryen['CallId'] === parentNode.id) {
+      return leftSide;
+    }
     return new UglifyJS.AST_Binary({
-      left: makeAsmCoercion(
-        walker(expr, expr.value),
-        fromType,
-        binaryen['i32']
-      ),
+      left: leftSide,
       operator: '>>>',
       right: new UglifyJS.AST_Number({value: 0})
     });

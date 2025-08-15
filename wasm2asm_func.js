@@ -134,10 +134,13 @@
         });
       }
       if (coercionTypes['f64'] === resultType) {
-        return new UglifyJS.AST_UnaryPrefix({
+        let x = new UglifyJS.AST_UnaryPrefix({
           operator: '+',
           expression: node
         });
+        x = new UglifyJS.AST_Parenthesis({expression: x});
+        UglifyJS.AST_Parenthesis
+        return x;
       }
       if (coercionTypes['f32'] === resultType) {
         return makeAsmAnnotation(node, coercionTypes['f32']);
