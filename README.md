@@ -8,27 +8,41 @@ Roadmap
 
 **The journey isn't over — wasm2asmjs still has a bright future ahead!**
 
-Planned improvements:
+Planned improvements (revised):
 
-1. 🔄 Replace `UglifyJS` with `@babel/generator` for modern JS codegen.
-2. 🧹 Use Closure Compiler for:
-   - Advanced JS compilation
-   - Linting and minification
-3. 🌐 Add a PHP backend for wasm-to-PHP transpilation (experimental).
-4. ⚙️ Set up GitHub Actions to:
-   - Run tests on push/PR
-   - Check linting and build status
-5. 📦 Publish to npm for CLI usage.
-6. 🧪 Add example `.wasm → .asm.js` demos.
-7. 📉 Document wasm vs asm.js performance and size differences.
-8. 🖼 Include live/browser demo for legacy support (e.g. IE11).
+1. 🔄 **Swap UglifyJS for `@babel/generator`**
+   * Use modern Babel-based code generation for asm.js output.
+2. 🧠 **Shift optimization passes to the Babel AST**
+   * Port current Binaryen-side optimizations into Babel transforms so we can optimize directly on the asm.js AST.
+3. 🧹 **Integrate Google Closure Compiler**
+   * Use Closure for advanced compilation, linting, and minification of the generated asm.js.
+4. 🌐 **Backends**
+   * **PHP backend** for experimental wasm→PHP transpilation.
+   * **Java backend** added alongside PHP for future multi-target experiments.
+5. ⚙️ **GitHub Actions CI**
+   * Run tests on push/PR.
+   * Enforce linting and build checks.
+   * Produce artifacts for inspection (e.g., generated asm.js, heap dumps).
+6. 📦 **Publish CLI to npm**
+   * Provide an installable CLI (`wasm2asmjs`) with clear command usage.
+7. 🧪 **Deterministic test harness (wasm vs asm.js)**
+   * Execute identical workloads via the true WebAssembly binary and the produced asm.js.
+   * Compare **HEAP array** contents (and/or slices) to assert bit-for-bit equivalence, enabling near-ISO validation.
+   * Include fixtures and golden outputs for regression testing.
+8. 🛠 **C→asm.js examples with Makefile builds**
+   * Provide concrete C examples compiled to wasm then to asm.js, with reproducible Makefile targets.
+   * Include small, focused programs (math kernels, string ops, memory ops) to exercise HEAP behavior.
+9. 🧰 **Examples: `.wasm → .asm.js` demos**
+   * Curated examples (no browser demo) showcasing CLI usage and the Makefile-based C build pipeline.
 
 Browser Compatibility for Optimal Performance
 ---------------------------------------------
 
-- **EdgeHTML**: Compatible with EdgeHTML starting from version 13. This ensures that users of Microsoft Edge can utilize the full capabilities of the tool.
-- **Chromium**: The ASM.JS validator has been available since version 61 of Chromium. This allows for robust performance and validation when using browsers based on the Chromium engine, such as Google Chrome.
-- **Firefox**: Support for 32-bit floating-point operations was introduced in version 34 of Firefox. This enhancement allows for improved performance and compatibility when using Mozilla Firefox.
+- **Edge (EdgeHTML ≥13)**: Early Microsoft Edge versions (pre-Chromium) could validate asm.js modules, ensuring basic compatibility.
+- **Chromium (≥61)**: The Chromium engine (including Chrome) added an asm.js validator starting at version 61, which allows correct execution of generated asm.js.
+- **Firefox (≥34)**: Mozilla Firefox introduced full asm.js support earlier, including 32-bit floating-point operations from version 34 onward.
+
+⚠️ Note: asm.js is primarily of historical/legacy interest today. This project focuses on toolchains and transpilation pipelines, not on end-user browser performance.
 
 Usage
 -----
