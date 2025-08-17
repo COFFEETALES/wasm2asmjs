@@ -106,30 +106,14 @@
     }
     if (coercionTypes['f32'] === sourceType) {
       if (coercionTypes['i32'] === resultType) {
-        addAsmJsHeader('Math_floor');
-        /*return new UglifyJS.AST_Call({
-          expression: new UglifyJS.AST_SymbolRef({
-            name: ['$', 'floor'].join('')
-          }),
-          args: [
-            new UglifyJS.AST_Binary({
-              left: node,
-              operator: '|',
-              right: new UglifyJS.AST_Number({
-                value: 0, start: { raw: '0' }
-              })
-            })
-          ]
-        });*/
         return new UglifyJS.AST_UnaryPrefix({
-          operator: '~~',
-          expression: new UglifyJS.AST_Call({
-            expression: new UglifyJS.AST_SymbolRef({
-              name: ['$', 'floor'].join('')
-            }),
-            args: [
-              new UglifyJS.AST_UnaryPrefix({operator: '+', expression: node})
-            ]
+          operator: '~',
+          expression: new UglifyJS.AST_UnaryPrefix({
+            operator: '~',
+            expression: new UglifyJS.AST_UnaryPrefix({
+              operator: '+',
+              expression: node
+            })
           })
         });
       }
@@ -138,8 +122,8 @@
           operator: '+',
           expression: node
         });
+        // UglifyJS drops redundant parens; keep this wrapper as a hint for future Babel.
         x = new UglifyJS.AST_Parenthesis({expression: x});
-        UglifyJS.AST_Parenthesis
         return x;
       }
       if (coercionTypes['f32'] === resultType) {
@@ -148,14 +132,11 @@
     }
     if (coercionTypes['f64'] === sourceType) {
       if (coercionTypes['i32'] === resultType) {
-        addAsmJsHeader('Math_floor');
         return new UglifyJS.AST_UnaryPrefix({
-          operator: '~~',
-          expression: new UglifyJS.AST_Call({
-            expression: new UglifyJS.AST_SymbolRef({
-              name: ['$', 'floor'].join('')
-            }),
-            args: [node]
+          operator: '~',
+          expression: new UglifyJS.AST_UnaryPrefix({
+            operator: '~',
+            expression: node
           })
         });
       }
