@@ -122,7 +122,7 @@
           binaryen['EqZInt32'] === parentNode.op,
         binaryen['SelectId'] === parentNode.id,
         binaryen['LoopId'] === parentNode.id,
-        (binaryen['IfId'] === parentNode.id || binaryen['BreakId']) &&
+        (binaryen['IfId'] === parentNode.id || binaryen['BreakId'] === parentNode.id) &&
           expr.srcPtr === parentNode.condition,
         binaryen['ReturnId'] === parentNode.id
       ];

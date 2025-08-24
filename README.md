@@ -12,10 +12,10 @@ Planned improvements (revised):
 
 1. 🔄 **Swap UglifyJS for `@babel/generator`**
    * Use modern Babel-based code generation for asm.js output.
-2. 🧠 **Shift optimization passes to the Babel AST**
-   * Port current Binaryen-side optimizations into Babel transforms so we can optimize directly on the asm.js AST.
 3. 🧹 **Integrate Google Closure Compiler**
    * Use Closure for advanced compilation, linting, and minification of the generated asm.js.
+   * Modularize the codebase (clear passes: parse → transform → generate) and remove legacy utilities.
+   * Add type discipline: JSDoc typedefs compatible with Closure.
 4. 🌐 **Backends**
    * **PHP backend** for experimental wasm→PHP transpilation.
    * **Java backend** added alongside PHP for future multi-target experiments.
@@ -29,11 +29,10 @@ Planned improvements (revised):
    * Execute identical workloads via the true WebAssembly binary and the produced asm.js.
    * Compare **HEAP array** contents (and/or slices) to assert bit-for-bit equivalence, enabling near-ISO validation.
    * Include fixtures and golden outputs for regression testing.
-8. 🛠 **C→asm.js examples with Makefile builds**
+8. 🛠 **C → asm.js examples with Makefile builds**
    * Provide concrete C examples compiled to wasm then to asm.js, with reproducible Makefile targets.
+   * Curated examples showcasing CLI usage and the Makefile-based C build pipeline.
    * Include small, focused programs (math kernels, string ops, memory ops) to exercise HEAP behavior.
-9. 🧰 **Examples: `.wasm → .asm.js` demos**
-   * Curated examples (no browser demo) showcasing CLI usage and the Makefile-based C build pipeline.
 
 Browser Compatibility for Optimal Performance
 ---------------------------------------------
@@ -205,6 +204,7 @@ for file in 'tests/wasm2asmjs_'*'.js'; do
     --trace-asm-parser                           \
     --emit-metadata                              \
     --emit-js                                    \
+    --optimize-for-js                            \
     -DASMJS_BEAUTIFY                             \
     -DNDEBUG                                     \
     "test:$filename"

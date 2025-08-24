@@ -38,7 +38,7 @@
           return null;
         }
 
-        return new UglifyJS.AST_LabelRef({ name: getLabelName(dest.name) });
+        return new UglifyJS.AST_LabelRef({name: getLabelName(dest.name)});
       })()
     });
 
@@ -64,7 +64,9 @@
 
     let blockExpr = binaryen.getExpressionInfo(expr.body);
     if (binaryen['BlockId'] !== blockExpr.id)
-      blockExpr = binaryen.getExpressionInfo(decodedModule.block(null, [expr.body]));
+      blockExpr = binaryen.getExpressionInfo(
+        decodedModule.block(null, [expr.body])
+      );
     if ('' !== blockExpr.name)
       expr['nameList'][expr['nameList'].length] = blockExpr.name;
 
@@ -96,7 +98,7 @@
             } else {
               resultLoop = new UglifyJS.AST_Do({
                 condition: walker(
-                  { id: binaryen['LoopId'], name: expr.name },
+                  decodedModule.loop(expr.name, decodedModule.nop()),
                   item.condition
                 ),
                 body: new UglifyJS.AST_BlockStatement({
@@ -162,10 +164,10 @@
         if (binaryen['IfId'] === lastExpr.id && 0 === lastExpr.ifFalse) {
           const bodyExpr = binaryen.getExpressionInfo(lastExpr.ifTrue);
           if (binaryen['BlockId'] === bodyExpr.id) {
+            const lastBodySrc = bodyExpr.children.pop();
             const item = getUnlinkedBr(blockExpr.children).find(
               elem =>
-                bodyExpr.children.pop() === elem['srcPtr'] &&
-                expr.name === elem['name']
+                lastBodySrc === elem['srcPtr'] && expr.name === elem['name']
             );
             if (item && 0 === item.condition && 0 === item.value) {
               const bodyArray =
@@ -191,7 +193,44 @@
               );
 
               resultLoop = new UglifyJS.AST_For({
-                body: new UglifyJS.AST_BlockStatement({ body: bodyArray })
+                body: new UglifyJS.AST_BlockStatement({body: bodyArray})
+              });
+              break $label_1;
+            }
+          }
+        }
+      }
+      if (1 === blockExpr.children.length) {
+        const lastSrc = blockExpr.children[0];
+        const lastExpr = binaryen.getExpressionInfo(lastSrc);
+        if (binaryen['IfId'] === lastExpr.id && 0 !== lastExpr.ifFalse) {
+          const ifFalseExpr = binaryen.getExpressionInfo(lastExpr.ifFalse);
+          if (binaryen['BlockId'] === ifFalseExpr.id) {
+            const lastIfFalseSrc = ifFalseExpr.children.pop();
+            const item = getUnlinkedBr(blockExpr.children).find(
+              elem =>
+                lastIfFalseSrc === elem['srcPtr'] && expr.name === elem['name']
+            );
+            if (item && 0 === item.condition && 0 === item.value) {
+              const bodyArray = [
+                new UglifyJS.AST_If({
+                  condition: walker([expr, blockExpr], lastExpr.condition),
+                  body: new UglifyJS.AST_BlockStatement({
+                    body: walker([expr, blockExpr], lastExpr.ifTrue)
+                      .flat()
+                      .concat(new UglifyJS.AST_Break({}))
+                  })
+                })
+              ];
+              const footerArray = walker(
+                [expr, blockExpr],
+                decodedModule.block(null, ifFalseExpr.children)
+              ).flat();
+
+              resultLoop = new UglifyJS.AST_For({
+                body: new UglifyJS.AST_BlockStatement({
+                  body: bodyArray.concat(footerArray)
+                })
               });
               break $label_1;
             }
@@ -203,7 +242,7 @@
     if (null === resultLoop) {
       output['warnings']['labeledStatement'] = true;
       resultLoop = new UglifyJS.AST_While({
-        condition: new UglifyJS.AST_Number({ value: 1 }),
+        condition: new UglifyJS.AST_Number({value: 1}),
         body: new UglifyJS.AST_BlockStatement({
           body: walker(
             [expr, blockExpr],
@@ -218,7 +257,7 @@
     // The "nested" property is modified by feeding the "resultLoop" variable.
     if (true === expr['nested']) {
       return new UglifyJS.AST_LabeledStatement({
-        label: new UglifyJS.AST_Label({ name: labelValue }),
+        label: new UglifyJS.AST_Label({name: labelValue}),
         body: resultLoop
       });
     }
