@@ -122,8 +122,6 @@
           operator: '+',
           expression: node
         });
-        // UglifyJS drops redundant parens; keep this wrapper as a hint for future Babel.
-        x = new UglifyJS.AST_Parenthesis({expression: x});
         return x;
       }
       if (coercionTypes['f32'] === resultType) {

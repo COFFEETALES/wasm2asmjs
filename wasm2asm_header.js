@@ -49,6 +49,8 @@ const argv = process.argv.slice(2).filter(str => {
     output['js'] = output['js'] || ProcessParameter('--emit-js');
     output['metadata'] =
       output['metadata'] || ProcessParameter('--emit-metadata');
+    output['optimize_for_js'] =
+      output['optimize_for_js'] || ProcessParameter('--optimize-for-js');
     return false;
   }
   if ('-D' === str.slice(0, 2)) {

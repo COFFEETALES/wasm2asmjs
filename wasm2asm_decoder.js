@@ -182,11 +182,10 @@
       output: {
         ast: false,
         code: true,
-        beautify: true /*(
-          'asm.js' === mode && (
-            undefined !== defs['_DEBUG'] || undefined !== defs['ASMJS_BEAUTIFY']
-          )
-        ),*/,
+        beautify:
+          'asm.js' === mode &&
+          (undefined !== defs['_DEBUG'] ||
+            undefined !== defs['ASMJS_BEAUTIFY']),
         semicolons: true,
         keep_quoted_props: true,
         quote_style: 3
