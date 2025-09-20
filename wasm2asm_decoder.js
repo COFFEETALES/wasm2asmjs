@@ -162,6 +162,7 @@
   }
 
   var finalizeJs = function (ast, mode) {
+    /*
     // console.log(topLevel.print_to_string());
     // https://www.npmjs.com/package/uglify-js#minify-options
     //delete defs['NDEBUG'];
@@ -169,8 +170,8 @@
 
     //    const mangle =
     //      ('asm.js' === mode ?
-    //        /*{ reserved: ['stdlib', 'foreign', 'buffer'] }*/false :
-    //          (undefined !== defs['NDEBUG']));
+    //        //{ reserved: ['stdlib', 'foreign', 'buffer'] }
+    //          false : (undefined !== defs['NDEBUG']));
 
     //    ast.figure_out_scope();
     //    process.stderr.write( ''+ast.print_to_string()+'\n' )
@@ -218,6 +219,7 @@
       process.stdout.write(res.code);
       process.stdout.write('\n');
     }
+    */
   };
 
   if (false !== output['metadata']) {
@@ -257,6 +259,7 @@
       );
     }
 
+    /*
     var topLevel = new UglifyJS.AST_Toplevel({
       body: [
         new UglifyJS.AST_Var({
@@ -304,30 +307,28 @@
         })
       ].concat(
         (function () {
-          /*
-            return [
-            new UglifyJS.AST_SimpleStatement({
-              body: new UglifyJS.AST_Call({
-                expression: new UglifyJS.AST_Dot({
-                  expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
-                  property: 'set'
-                }),
-                args: [
-                  new UglifyJS.AST_Array({
-                    elements: Array.prototype.slice.call(
-                      new Int32Array(byteArray.buffer)
-                    ).map(
-                      (i) => new UglifyJS.AST_Number({ value: i })
-                    )
-                  }),
-                  new UglifyJS.AST_Number({
-                    value: Math.trunc( arr[0]['byteOffset']/4 )
-                  })
-                ]
-              })
-            })
-            ];
-          */
+          //  return [
+          //  new UglifyJS.AST_SimpleStatement({
+          //    body: new UglifyJS.AST_Call({
+          //      expression: new UglifyJS.AST_Dot({
+          //        expression: new UglifyJS.AST_SymbolRef({ name: 'i32_array' }),
+          //        property: 'set'
+          //      }),
+          //      args: [
+          //        new UglifyJS.AST_Array({
+          //          elements: Array.prototype.slice.call(
+          //            new Int32Array(byteArray.buffer)
+          //          ).map(
+          //            (i) => new UglifyJS.AST_Number({ value: i })
+          //          )
+          //        }),
+          //        new UglifyJS.AST_Number({
+          //          value: Math.trunc( arr[0]['byteOffset']/4 )
+          //        })
+          //      ]
+          //    })
+          //  })
+          //  ];
 
           var retValue = [];
 
@@ -430,6 +431,7 @@
       )
     });
     finalizeJs(topLevel, 'metadata');
+    */
   }
   if (false === output['js'] && 'undefined' === typeof CompleteTest) {
     process.exit(0);
@@ -437,6 +439,7 @@
 
   var asmJsConstructVariable = {};
 
+  /*
   asmJsConstructVariable[binaryen['i32']] = function (name, num) {
     if ('number' !== typeof num) {
       num = 0.0;
@@ -493,6 +496,7 @@
       })
     });
   };
+  */
 
   var wasmImportedFunctions = [];
   var wasmFunctions = [...Array(decodedModule.getNumExports()).keys()]

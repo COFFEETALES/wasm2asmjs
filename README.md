@@ -47,6 +47,8 @@ Usage
 -----
 
 ``` bash
+$> npm install @babel/core@8.0.0-beta.2 @babel/types@8.0.0-beta.2 @babel/generator@8.0.0-beta.2
+# ^ used for javascript generation
 $> npm install binaryen
 # ^ wasm parser and optimizer
 $> npm install uglify-js
