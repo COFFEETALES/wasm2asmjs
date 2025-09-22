@@ -15,7 +15,11 @@
   const binaryen = (
     await import(
       url.pathToFileURL(
-        path.join(process.env['NODE_PATH'], 'binaryen', 'index.js')
+        path.join(
+          process.env.NODE_PATH || path.join(process.cwd(), 'node_modules'),
+          'binaryen',
+          'index.js'
+        )
       )['href']
     )
   ).default;
@@ -43,12 +47,12 @@
 
   RunFile('wasm2asm_header.js');
   RunFile('wasm2asm_basex.js');
-  RunFile('wasm2asm_decoder.js');
-  RunFile('wasm2asm_miscellaneous.js');
-  RunFile('wasm2asm_op_general.js');
-  RunFile('wasm2asm_op_heap.js');
-  RunFile('wasm2asm_op_loop.js');
-  RunFile('wasm2asm_func.js');
-  RunFile('wasm2asm_link.js');
+  //RunFile('wasm2asm_decoder.js');
+  //RunFile('wasm2asm_miscellaneous.js');
+  //RunFile('wasm2asm_op_general.js');
+  //RunFile('wasm2asm_op_heap.js');
+  //RunFile('wasm2asm_op_loop.js');
+  //RunFile('wasm2asm_func.js');
+  //RunFile('wasm2asm_link.js');
   RunFile('wasm2asm_void0.js');
 })();

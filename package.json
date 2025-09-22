@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@babel/core": "^8.0.0-beta.2",
+    "@babel/generator": "^8.0.0-beta.2",
+    "@babel/types": "^8.0.0-beta.2",
+    "binaryen": "^124.0.0",
+    "uglify-js": "^3.19.3"
+  }
+}
