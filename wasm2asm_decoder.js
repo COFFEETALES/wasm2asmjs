@@ -162,36 +162,9 @@
   }
 
   var finalizeJs = function (ast, mode) {
-    // console.log(topLevel.print_to_string());
-    // https://www.npmjs.com/package/uglify-js#minify-options
     //delete defs['NDEBUG'];
     //defs['_DEBUG'] = 1;
-
-    //    const mangle =
-    //      ('asm.js' === mode ?
-    //        /*{ reserved: ['stdlib', 'foreign', 'buffer'] }*/false :
-    //          (undefined !== defs['NDEBUG']));
-
-    //    ast.figure_out_scope();
-    //    process.stderr.write( ''+ast.print_to_string()+'\n' )
-    const res = UglifyJS.minify(ast, {
-      // print_to_string is mandatory; otherwise, issues may occur randomly!
-      parse: {},
-      compress: false, // "false", otherwise crash //(undefined !== defs['NDEBUG']),
-      mangle: false,
-      output: {
-        ast: false,
-        code: true,
-        beautify:
-          'asm.js' === mode &&
-          (undefined !== defs['_DEBUG'] ||
-            undefined !== defs['ASMJS_BEAUTIFY']),
-        semicolons: true,
-        keep_quoted_props: true,
-        quote_style: 3
-      },
-      warnings: true
-    });
+    const res = babelGenerate.generate(ast);
 
     {
       if (true === output['warnings']['labeledStatement']) {
@@ -206,8 +179,6 @@
         );
       }
     }
-
-    if (res.error) throw res.error;
 
     //console.log(JSON.stringify(topLevel, null, 4));
     //console.log(JSON.stringify(res, null, 4));
@@ -257,52 +228,40 @@
       );
     }
 
-    var topLevel = new UglifyJS.AST_Toplevel({
-      body: [
-        new UglifyJS.AST_Var({
-          definitions: [
-            new UglifyJS.AST_VarDef({
-              name: new UglifyJS.AST_SymbolVar({
-                name:
-                  'string' === typeof output['metadata']
-                    ? output['metadata']
-                    : 'asmjs_memory'
-              }),
-              value: new UglifyJS.AST_New({
-                expression: new UglifyJS.AST_SymbolRef({name: 'ArrayBuffer'}),
-                args: [
-                  new UglifyJS.AST_Number({
-                    value:
-                      undefined !== defs['ASMJS_HEAP_SIZE']
-                        ? defs['ASMJS_HEAP_SIZE']
-                        : 0x10000
-                  })
-                ]
-              })
-            })
-          ]
-        }),
-        new UglifyJS.AST_Var({
-          definitions: [
-            new UglifyJS.AST_VarDef({
-              name: new UglifyJS.AST_SymbolVar({
-                name: 'i32_array'
-              }),
-              value: new UglifyJS.AST_New({
-                expression: new UglifyJS.AST_SymbolRef({name: 'Int32Array'}),
-                args: [
-                  new UglifyJS.AST_SymbolRef({
-                    name:
-                      'string' === typeof output['metadata']
-                        ? output['metadata']
-                        : 'asmjs_memory'
-                  })
-                ]
-              })
-            })
-          ]
-        })
-      ].concat(
+    const metadataId = babelTypes.identifier(
+      'string' === typeof output['metadata']
+        ? output['metadata']
+        : 'asmjs_memory'
+    );
+
+    const arrayBufferDecl = babelTypes.variableDeclaration('var', [
+      babelTypes.variableDeclarator(
+        metadataId,
+        babelTypes.newExpression(babelTypes.identifier('ArrayBuffer'), [
+          babelTypes.numericLiteral(
+            undefined !== defs['ASMJS_HEAP_SIZE']
+              ? defs['ASMJS_HEAP_SIZE']
+              : 0x10000
+          )
+        ])
+      )
+    ]);
+
+    const i32ArrayDecl = babelTypes.variableDeclaration('var', [
+      babelTypes.variableDeclarator(
+        babelTypes.identifier('i32_array'),
+        babelTypes.newExpression(babelTypes.identifier('Int32Array'), [
+          babelTypes.identifier(
+            typeof output['metadata'] === 'string'
+              ? output['metadata']
+              : 'asmjs_memory'
+          )
+        ])
+      )
+    ]);
+
+    const topLevel = babelTypes.program(
+      [arrayBufferDecl, i32ArrayDecl].concat(
         (function () {
           /*
             return [
@@ -328,7 +287,6 @@
             })
             ];
           */
-
           var retValue = [];
 
           var i = 0;
@@ -339,15 +297,15 @@
 
           var setData = function (endPoint) {
             if (lastIndex === endPoint) return;
-            retValue[retValue.length] = new UglifyJS.AST_SimpleStatement({
-              body: new UglifyJS.AST_Call({
-                expression: new UglifyJS.AST_Dot({
-                  expression: new UglifyJS.AST_SymbolRef({name: 'i32_array'}),
-                  property: 'set'
-                }),
-                args: [
-                  new UglifyJS.AST_Array({
-                    elements: Array.prototype.slice
+            retValue[retValue.length] = babelTypes.expressionStatement(
+              babelTypes.callExpression(
+                babelTypes.memberExpression(
+                  babelTypes.identifier('i32_array'),
+                  babelTypes.identifier('set')
+                ),
+                [
+                  babelTypes.arrayExpression(
+                    Array.prototype.slice
                       .call(
                         new Int32Array(
                           byteArray.buffer,
@@ -355,37 +313,35 @@
                           endPoint - lastIndex
                         )
                       )
-                      .map(j => new UglifyJS.AST_Number({value: j}))
-                  }),
-                  new UglifyJS.AST_Number({
-                    value: Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
-                  })
+                      .map(j => babelTypes.numericLiteral(j))
+                  ),
+                  babelTypes.numericLiteral(
+                    Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
+                  )
                 ]
-              })
-            });
+              )
+            );
           };
 
           var fillData = function (endPoint) {
             if (0 === filler) return;
-            retValue[retValue.length] = new UglifyJS.AST_SimpleStatement({
-              body: new UglifyJS.AST_Call({
-                expression: new UglifyJS.AST_Dot({
-                  expression: new UglifyJS.AST_SymbolRef({name: 'i32_array'}),
-                  property: 'fill'
-                }),
-                args: [
-                  new UglifyJS.AST_Number({
-                    value: filler
-                  }),
-                  new UglifyJS.AST_Number({
-                    value: Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
-                  }),
-                  new UglifyJS.AST_Number({
-                    value: Math.trunc(arr[0]['byteOffset'] / 4) + endPoint
-                  })
+            retValue[retValue.length] = babelTypes.expressionStatement(
+              babelTypes.callExpression(
+                babelTypes.memberExpression(
+                  babelTypes.identifier('i32_array'),
+                  babelTypes.identifier('fill')
+                ),
+                [
+                  babelTypes.numericLiteral(filler),
+                  babelTypes.numericLiteral(
+                    Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
+                  ),
+                  babelTypes.numericLiteral(
+                    Math.trunc(arr[0]['byteOffset'] / 4) + endPoint
+                  )
                 ]
-              })
-            });
+              )
+            );
           };
 
           var processData = function () {
@@ -428,7 +384,10 @@
           return retValue;
         })()
       )
-    });
+    );
+
+    //const generated = babelGenerate.generate(topLevel, {});
+    //console.log(generated.code);
     finalizeJs(topLevel, 'metadata');
   }
   if (false === output['js'] && 'undefined' === typeof CompleteTest) {
@@ -441,15 +400,10 @@
     if ('number' !== typeof num) {
       num = 0.0;
     }
-    return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({
-        name: name
-      }),
-      value: new UglifyJS.AST_Number({
-        value: num,
-        start: {raw: num.toString(10)}
-      })
-    });
+    return babelTypes.variableDeclarator(
+      babelTypes.identifier(name),
+      babelTypes.numericLiteral(num)
+    );
   };
 
   asmJsConstructVariable[binaryen['f32']] = function (name, num) {
@@ -457,41 +411,31 @@
       num = 0.0;
     }
     addAsmJsHeader('Math_fround');
-    return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({
-        name: name
-      }),
-      value: new UglifyJS.AST_Call({
-        expression: new UglifyJS.AST_SymbolRef({
-          name: ['$', 'fround'].join('')
-        }),
-        args: [
-          new UglifyJS.AST_Number({
-            value: num,
-            start: {
-              raw: Math.floor(num) === num ? num.toFixed(1) : num.toString(10)
-            }
-          })
-        ]
-      })
-    });
+    const node = babelTypes.numericLiteral(num);
+    const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
+    node.extra = {
+      ...(node.extra || {}),
+      raw: raw,
+      rawValue: num
+    };
+    return babelTypes.variableDeclarator(
+      babelTypes.identifier(name),
+      babelTypes.callExpression(babelTypes.identifier('$fround'), [node])
+    );
   };
 
   asmJsConstructVariable[binaryen['f64']] = function (name, num) {
     if ('number' !== typeof num) {
       num = 0.0;
     }
-    return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({
-        name: name
-      }),
-      value: new UglifyJS.AST_Number({
-        value: num,
-        start: {
-          raw: Math.floor(num) === num ? num.toFixed(1) : num.toString(10)
-        }
-      })
-    });
+    const node = babelTypes.numericLiteral(num);
+    const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
+    node.extra = {
+      ...(node.extra || {}),
+      raw: raw,
+      rawValue: num
+    };
+    return babelTypes.variableDeclarator(babelTypes.identifier(name), node);
   };
 
   var wasmImportedFunctions = [];

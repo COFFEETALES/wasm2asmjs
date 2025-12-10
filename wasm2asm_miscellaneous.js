@@ -218,16 +218,16 @@ print( simplify_logic( my_op, None, True, False ) )
       'Math_PI': 'PI'
     };
 
-    return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({name: ['$', o[str]].join('')}),
-      value: new UglifyJS.AST_Dot({
-        expression: new UglifyJS.AST_Dot({
-          expression: new UglifyJS.AST_SymbolRef({name: 'stdlib'}),
-          property: 'Math'
-        }),
-        property: o[str]
-      })
-    });
+    return babelTypes.variableDeclarator(
+      babelTypes.identifier(['$', o[str]].join('')),
+      babelTypes.memberExpression(
+        babelTypes.memberExpression(
+          babelTypes.identifier('stdlib'),
+          babelTypes.identifier('Math')
+        ),
+        babelTypes.identifier(o[str])
+      )
+    );
   };
 
   const genTypedArrayDep = str => {
@@ -242,16 +242,16 @@ print( simplify_logic( my_op, None, True, False ) )
       'f64': 'Float64Array'
     };
 
-    return new UglifyJS.AST_VarDef({
-      name: new UglifyJS.AST_SymbolVar({name: ['$', str].join('')}),
-      value: new UglifyJS.AST_New({
-        args: [new UglifyJS.AST_SymbolRef({name: 'buffer'})],
-        expression: new UglifyJS.AST_Dot({
-          expression: new UglifyJS.AST_SymbolRef({name: 'stdlib'}),
-          property: o[str]
-        })
-      })
-    });
+    return babelTypes.variableDeclarator(
+      babelTypes.identifier(['$', str].join('')),
+      babelTypes.newExpression(
+        babelTypes.memberExpression(
+          babelTypes.identifier('stdlib'),
+          babelTypes.identifier(o[str])
+        ),
+        [babelTypes.identifier('buffer')]
+      )
+    );
   };
 
   const headerList = [];
@@ -472,12 +472,24 @@ const genStrId = function (num) {
           if (obj['funcList'].some(i => null === i)) {
             const fooName = [keyStr, '_', 'foo'].join('');
             //process.stderr.write('getFunc: ' + decodedModule.getFunction(fooName) + '\n');
+            let returnNode = null;
+            if (binaryen['none'] !== results) {
+              if (binaryen['i32'] === results) {
+                returnNode = decodedModule.return(decodedModule.i32.const(0));
+              } else if (binaryen['f32'] === results) {
+                returnNode = decodedModule.return(decodedModule.f32.const(0));
+              } else if (binaryen['f64'] === results) {
+                returnNode = decodedModule.return(decodedModule.f64.const(0));
+              } else {
+                throw 'Unsupported FTable function return type.';
+              }
+            }
             decodedModule.addFunction(
               fooName,
               binaryen.createType(params),
               results,
               [],
-              decodedModule.block('', [])
+              decodedModule.block(null, returnNode ? [returnNode] : [])
             );
             prepareFunction(0, fooName, true);
           }
@@ -488,33 +500,27 @@ const genStrId = function (num) {
 
     // Each FTable must have its own declaration preceded by the keyword "var".
     var processAsmJsFTable = () =>
-      Object.keys(ftableList).map(
-        o =>
-          new UglifyJS.AST_Var({
-            definitions: [
-              new UglifyJS.AST_VarDef({
-                name: new UglifyJS.AST_SymbolVar({
-                  name: ['$', 'ftable', '_', o].join('')
-                }),
-                value: new UglifyJS.AST_Array({
-                  elements: ftableList[o]['funcList'].map(
-                    i =>
-                      new UglifyJS.AST_SymbolRef({
-                        name: ['$']
-                          .concat(
-                            null === i
-                              ? ['f_', o, '_', 'foo'].join('')
-                              : undefined !== i['encoded_name']
-                              ? ['f', i['encoded_name']].join('_')
-                              : i['name']
-                          )
-                          .join('')
-                      })
-                  )
-                })
-              })
-            ]
-          })
+      Object.keys(ftableList).map(o =>
+        babelTypes.variableDeclaration('var', [
+          babelTypes.variableDeclarator(
+            babelTypes.identifier(['$', 'ftable', '_', o].join('')),
+            babelTypes.arrayExpression(
+              ftableList[o]['funcList'].map(i =>
+                babelTypes.identifier(
+                  ['$']
+                    .concat(
+                      null === i
+                        ? ['f_', o, '_', 'foo'].join('')
+                        : undefined !== i['encoded_name']
+                        ? ['f', i['encoded_name']].join('_')
+                        : i['name']
+                    )
+                    .join('')
+                )
+              )
+            )
+          )
+        ])
       );
   }
 }
@@ -543,15 +549,15 @@ const genStrId = function (num) {
     return wasmImportedFunctions
       .filter(i => undefined === i['std'])
       .map(function (item) {
-        return new UglifyJS.AST_VarDef({
-          name: new UglifyJS.AST_SymbolVar({
-            name: ['$', 'if', '_', item['encoded_name']].join('')
-          }),
-          value: new UglifyJS.AST_Dot({
-            expression: new UglifyJS.AST_SymbolRef({name: 'foreign'}),
-            property: item.base
-          })
-        });
+        return babelTypes.variableDeclarator(
+          babelTypes.identifier(
+            ['$', 'if', '_', item['encoded_name']].join('')
+          ),
+          babelTypes.memberExpression(
+            babelTypes.identifier('foreign'),
+            babelTypes.identifier(item.base)
+          )
+        );
       });
   };
 
@@ -573,23 +579,20 @@ const genStrId = function (num) {
   };
 }
 
-const asmJsReturn = new UglifyJS.AST_Return({
-  value: new UglifyJS.AST_Object({
-    properties: (function () {
+const asmJsReturn = babelTypes.returnStatement(
+  babelTypes.objectExpression(
+    (function () {
       const keys = Object.keys(wasmExports);
       const res = [];
       for (let i = 0, len = keys.length; i !== len; ++i) {
         const n = wasmExports[keys[i]];
-        res[res.length] = new UglifyJS.AST_ObjectKeyVal({
-          quote: void 0,
-          key: keys[i],
-          value: new UglifyJS.AST_SymbolRef({
-            //name: ['$',genStrId(n.descr.id.value)].join('')
-            name: ['$', n].join('')
-          })
-        });
+        res[res.length] = babelTypes.objectProperty(
+          babelTypes.identifier(keys[i]),
+          babelTypes.identifier(['$', n].join('')),
+          /* computed */ false
+        );
       }
       return res;
     })()
-  })
-});
+  )
+);

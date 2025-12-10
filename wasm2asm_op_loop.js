@@ -26,28 +26,32 @@
 
     const AST_T =
       binaryen['LoopId'] === dest.id && expr.name === dest.name
-        ? UglifyJS.AST_Continue
-        : UglifyJS.AST_Break;
+        ? babelTypes.continueStatement
+        : babelTypes.breakStatement;
 
-    const node = new AST_T({
-      label: (function () {
-        const parentLoop = parentNodes
-          .filter(i => binaryen['LoopId'] === i.id)
-          .pop();
-        if (parentLoop && -1 !== parentLoop['nameList'].indexOf(expr.name)) {
-          return null;
-        }
+    const node = (function () {
+      const parentLoop = parentNodes
+        .filter(i => binaryen['LoopId'] === i.id)
+        .pop();
 
-        return new UglifyJS.AST_LabelRef({name: getLabelName(dest.name)});
-      })()
-    });
+      const shouldOmitLabel =
+        parentLoop &&
+        parentLoop === dest &&
+        -1 !== parentLoop['nameList'].indexOf(expr.name);
+
+      if (shouldOmitLabel) {
+        return AST_T();
+      }
+
+      return AST_T(babelTypes.identifier(getLabelName(dest.name)));
+    })();
 
     if (0 !== expr.condition) {
       return [
-        new UglifyJS.AST_If({
-          condition: walker(expr, expr.condition),
-          body: node
-        })
+        babelTypes.ifStatement(
+          walker(expr, expr.condition),
+          babelTypes.blockStatement([node])
+        )
       ];
     }
     return node;
@@ -80,40 +84,33 @@
         if (item) {
           if (0 === item.value) {
             if (0 === item.condition) {
-              resultLoop = new UglifyJS.AST_For({
-                body: new UglifyJS.AST_BlockStatement({
-                  body:
-                    (blockExpr.children.pop(),
-                    walker(
-                      [expr, blockExpr],
-                      decodedModule.block(
-                        '',
-                        blockExpr.children,
-                        blockExpr.type
-                      )
-                    ).flat())
-                })
-              });
+              resultLoop = babelTypes.forStatement(
+                null,
+                null,
+                null,
+                babelTypes.blockStatement(
+                  (blockExpr.children.pop(),
+                  walker(
+                    [expr, blockExpr],
+                    decodedModule.block('', blockExpr.children, blockExpr.type)
+                  ).flat())
+                )
+              );
               break $label_1;
             } else {
-              resultLoop = new UglifyJS.AST_Do({
-                condition: walker(
+              resultLoop = babelTypes.doWhileStatement(
+                walker(
                   decodedModule.loop(expr.name, decodedModule.nop()),
                   item.condition
                 ),
-                body: new UglifyJS.AST_BlockStatement({
-                  body:
-                    (blockExpr.children.pop(),
-                    walker(
-                      [expr, blockExpr],
-                      decodedModule.block(
-                        '',
-                        blockExpr.children,
-                        blockExpr.type
-                      )
-                    ).flat())
-                })
-              });
+                babelTypes.blockStatement(
+                  (blockExpr.children.pop(),
+                  walker(
+                    [expr, blockExpr],
+                    decodedModule.block('', blockExpr.children, blockExpr.type)
+                  ).flat())
+                )
+              );
               break $label_1;
             }
           } // ~ if ( 0 === item.value )
@@ -130,28 +127,30 @@
           if (expr.name === arr[0]['name']) {
             if (0 !== arr[0].condition) {
               if (0 === arr[1].condition) {
-                resultLoop = new UglifyJS.AST_For({
-                  body: new UglifyJS.AST_BlockStatement({
-                    body:
-                      (blockExpr.children.splice(
-                        -2,
-                        2,
-                        decodedModule.br(
-                          arr[1]['name'],
-                          createEqz(arr[0].condition),
-                          0
-                        )
-                      ),
-                      walker(
-                        [expr, blockExpr],
-                        decodedModule.block(
-                          '',
-                          blockExpr.children,
-                          blockExpr.type
-                        )
-                      ).flat())
-                  })
-                });
+                resultLoop = babelTypes.forStatement(
+                  null,
+                  null,
+                  null,
+                  babelTypes.blockStatement(
+                    (blockExpr.children.splice(
+                      -2,
+                      2,
+                      decodedModule.br(
+                        arr[1]['name'],
+                        createEqz(arr[0].condition),
+                        0
+                      )
+                    ),
+                    walker(
+                      [expr, blockExpr],
+                      decodedModule.block(
+                        '',
+                        blockExpr.children,
+                        blockExpr.type
+                      )
+                    ).flat())
+                  )
+                );
                 break $label_1;
               }
             }
@@ -183,18 +182,18 @@
               bodyArray.splice(
                 bodyExpr.children.length * -1,
                 0,
-                new UglifyJS.AST_If({
-                  condition: walker(
-                    [expr, blockExpr],
-                    createEqz(lastExpr.condition)
-                  ),
-                  body: new UglifyJS.AST_Break({})
-                })
+                babelTypes.ifStatement(
+                  walker([expr, blockExpr], createEqz(lastExpr.condition)),
+                  babelTypes.breakStatement()
+                )
               );
 
-              resultLoop = new UglifyJS.AST_For({
-                body: new UglifyJS.AST_BlockStatement({body: bodyArray})
-              });
+              resultLoop = babelTypes.forStatement(
+                null,
+                null,
+                null,
+                babelTypes.blockStatement(bodyArray)
+              );
               break $label_1;
             }
           }
@@ -213,25 +212,26 @@
             );
             if (item && 0 === item.condition && 0 === item.value) {
               const bodyArray = [
-                new UglifyJS.AST_If({
-                  condition: walker([expr, blockExpr], lastExpr.condition),
-                  body: new UglifyJS.AST_BlockStatement({
-                    body: walker([expr, blockExpr], lastExpr.ifTrue)
+                babelTypes.ifStatement(
+                  walker([expr, blockExpr], lastExpr.condition),
+                  babelTypes.blockStatement(
+                    walker([expr, blockExpr], lastExpr.ifTrue)
                       .flat()
-                      .concat(new UglifyJS.AST_Break({}))
-                  })
-                })
+                      .concat(babelTypes.breakStatement())
+                  )
+                )
               ];
               const footerArray = walker(
                 [expr, blockExpr],
                 decodedModule.block(null, ifFalseExpr.children)
               ).flat();
 
-              resultLoop = new UglifyJS.AST_For({
-                body: new UglifyJS.AST_BlockStatement({
-                  body: bodyArray.concat(footerArray)
-                })
-              });
+              resultLoop = babelTypes.forStatement(
+                null,
+                null,
+                null,
+                babelTypes.blockStatement(bodyArray.concat(footerArray))
+              );
               break $label_1;
             }
           }
@@ -241,25 +241,25 @@
 
     if (null === resultLoop) {
       output['warnings']['labeledStatement'] = true;
-      resultLoop = new UglifyJS.AST_While({
-        condition: new UglifyJS.AST_Number({value: 1}),
-        body: new UglifyJS.AST_BlockStatement({
-          body: walker(
+      resultLoop = babelTypes.whileStatement(
+        babelTypes.numericLiteral(1),
+        babelTypes.blockStatement(
+          walker(
             [expr, blockExpr],
             decodedModule.block('', blockExpr.children, blockExpr.type)
           )
             .flat()
-            .concat(new UglifyJS.AST_Break({}))
-        })
-      });
+            .concat(babelTypes.breakStatement())
+        )
+      );
     }
 
     // The "nested" property is modified by feeding the "resultLoop" variable.
     if (true === expr['nested']) {
-      return new UglifyJS.AST_LabeledStatement({
-        label: new UglifyJS.AST_Label({name: labelValue}),
-        body: resultLoop
-      });
+      return babelTypes.labeledStatement(
+        babelTypes.identifier(labelValue),
+        resultLoop
+      );
     }
     return resultLoop;
   };

@@ -5,7 +5,8 @@ const path = require('path');
 const fs = require('fs');
 
 //const binaryen = require('binaryen');//require(path.join(__dirname, 'binaryen.js'));
-const UglifyJS = require('uglify-js'); //require(path.join(path.dirname(process.execPath), 'node_modules', 'uglify-js'));
+const babelTypes = require('@babel/types');
+const babelGenerate = require('@babel/generator');
 
 const defs = {};
 

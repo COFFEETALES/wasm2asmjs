@@ -15,7 +15,11 @@
   const binaryen = (
     await import(
       url.pathToFileURL(
-        path.join(process.env['NODE_PATH'], 'binaryen', 'index.js')
+        path.join(
+          process.env.NODE_PATH || path.join(process.cwd(), 'node_modules'),
+          'binaryen',
+          'index.js'
+        )
       )['href']
     )
   ).default;

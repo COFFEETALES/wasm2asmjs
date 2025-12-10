@@ -10,26 +10,26 @@ Roadmap
 
 Planned improvements (revised):
 
-1. 🔄 **Swap UglifyJS for `@babel/generator`**
-   * Use modern Babel-based code generation for asm.js output.
-3. 🧹 **Integrate Google Closure Compiler**
+1. 🔄 **Swap UglifyJS for `@babel/generator`** ✅
+   * Use modern Babel-based code generation for asm.js output. ✅
+2. 🧹 **Integrate Google Closure Compiler** ⏳
    * Use Closure for advanced compilation, linting, and minification of the generated asm.js.
    * Modularize the codebase (clear passes: parse → transform → generate) and remove legacy utilities.
    * Add type discipline: JSDoc typedefs compatible with Closure.
-4. 🌐 **Backends**
+3. 🌐 **Backends** ⏳
    * **PHP backend** for experimental wasm→PHP transpilation.
    * **Java backend** added alongside PHP for future multi-target experiments.
-5. ⚙️ **GitHub Actions CI**
+4. ⚙️ **GitHub Actions CI** ⏳
    * Run tests on push/PR.
    * Enforce linting and build checks.
    * Produce artifacts for inspection (e.g., generated asm.js, heap dumps).
-6. 📦 **Publish CLI to npm**
+5. 📦 **Publish CLI to npm** ⏳
    * Provide an installable CLI (`wasm2asmjs`) with clear command usage.
-7. 🧪 **Deterministic test harness (wasm vs asm.js)**
+6. 🧪 **Deterministic test harness (wasm vs asm.js)** ⏳
    * Execute identical workloads via the true WebAssembly binary and the produced asm.js.
    * Compare **HEAP array** contents (and/or slices) to assert bit-for-bit equivalence, enabling near-ISO validation.
    * Include fixtures and golden outputs for regression testing.
-8. 🛠 **C → asm.js examples with Makefile builds**
+7. 🛠 **C → asm.js examples with Makefile builds** ⏳
    * Provide concrete C examples compiled to wasm then to asm.js, with reproducible Makefile targets.
    * Curated examples showcasing CLI usage and the Makefile-based C build pipeline.
    * Include small, focused programs (math kernels, string ops, memory ops) to exercise HEAP behavior.
@@ -47,6 +47,8 @@ Usage
 -----
 
 ``` bash
+$> npm install @babel/core@8.0.0-beta.3 @babel/types@8.0.0-beta.3 @babel/generator@8.0.0-beta.3
+# ^ used for javascript generation
 $> npm install binaryen
 # ^ wasm parser and optimizer
 $> npm install uglify-js
@@ -196,9 +198,12 @@ Run tests
 
 ```
 cd /coffee/dev/wasm2asm
+fn() {
+[[ $- =~ e ]] && prev_errexit=true || prev_errexit=false
+set +e
 for file in 'tests/wasm2asmjs_'*'.js'; do
   filename="$(basename "$file")"
-  NODE_PATH='/coffeetales.net/node_modules' node \
+  NODE_PATH='/coffee/dev/wasm2asm/node_modules' node \
     './wasm2asm.js'                              \
     --validate-asm                               \
     --trace-asm-parser                           \
@@ -208,12 +213,23 @@ for file in 'tests/wasm2asmjs_'*'.js'; do
     -DASMJS_BEAUTIFY                             \
     -DNDEBUG                                     \
     "test:$filename"
+  if [ $? -ne 0 ]; then
+    break
+  fi
 done
+if [ "$prev_errexit" = "false" ]; then
+  set +e
+else
+  set -e
+fi
+}
+fn
 ```
 
 Credits
 -------
 
+[Babel](https://babeljs.io)
 [Binaryen](https://github.com/WebAssembly/binaryen)
 [UglifyJS](https://github.com/mishoo/UglifyJS)
 [Coffeetales](https://coffeetales.net)

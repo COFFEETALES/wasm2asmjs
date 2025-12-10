@@ -12,27 +12,22 @@
 
   var makeAsmAnnotation = function (node, resultType) {
     if (binaryen['i32'] === resultType) {
-      return new UglifyJS.AST_Binary({
-        left: node,
-        operator: '|',
-        right: new UglifyJS.AST_Number({
-          value: 0,
-          start: {raw: '0'}
-        })
-      });
+      // (node | 0)
+      return babelTypes.binaryExpression(
+        '|',
+        node,
+        babelTypes.numericLiteral(0)
+      );
     } else if (binaryen['f32'] === resultType) {
       addAsmJsHeader('Math_fround');
-      return new UglifyJS.AST_Call({
-        expression: new UglifyJS.AST_SymbolRef({
-          name: ['$', 'fround'].join('')
-        }),
-        args: [node]
-      });
+      // $fround(node)
+      return babelTypes.callExpression(
+        babelTypes.identifier(['$', 'fround'].join('')),
+        [node]
+      );
     } else if (binaryen['f64'] === resultType) {
-      return new UglifyJS.AST_UnaryPrefix({
-        operator: '+',
-        expression: node
-      });
+      // +node
+      return babelTypes.unaryExpression('+', node, true);
     } else {
       throw [
         'makeAsmAnnotation: argument type not implemented: ',
@@ -51,21 +46,17 @@
     if (coercionTypes['u32'] === sourceType) {
       if (coercionTypes['f32'] === resultType) {
         addAsmJsHeader('Math_fround');
-        return new UglifyJS.AST_Call({
-          expression: new UglifyJS.AST_SymbolRef({
-            name: ['$', 'fround'].join('')
-          }),
-          args: [
-            new UglifyJS.AST_Binary({
-              left: node,
-              operator: '>>>',
-              right: new UglifyJS.AST_Number({
-                value: 0,
-                start: {raw: '0'}
-              })
-            })
+        // $fround(node >>> 0)
+        return babelTypes.callExpression(
+          babelTypes.identifier(['$', 'fround'].join('')),
+          [
+            babelTypes.binaryExpression(
+              '>>>',
+              node,
+              babelTypes.numericLiteral(0)
+            )
           ]
-        });
+        );
       }
     }
     if (coercionTypes['i32'] === sourceType) {
@@ -74,54 +65,37 @@
       }
       if (coercionTypes['f32'] === resultType) {
         addAsmJsHeader('Math_fround');
-        return new UglifyJS.AST_Call({
-          expression: new UglifyJS.AST_SymbolRef({
-            name: ['$', 'fround'].join('')
-          }),
-          args: [
-            new UglifyJS.AST_Binary({
-              left: node,
-              operator: '|',
-              right: new UglifyJS.AST_Number({
-                value: 0,
-                start: {raw: '0'}
-              })
-            })
-          ]
-        });
+        // $fround(node | 0)
+        return babelTypes.callExpression(
+          babelTypes.identifier(['$', 'fround'].join('')),
+          [babelTypes.binaryExpression('|', node, babelTypes.numericLiteral(0))]
+        );
       }
       if (coercionTypes['f64'] === resultType) {
-        return new UglifyJS.AST_UnaryPrefix({
-          operator: '+',
-          expression: new UglifyJS.AST_Binary({
-            left: node,
-            operator: '|',
-            right: new UglifyJS.AST_Number({
-              value: 0,
-              start: {raw: '0'}
-            })
-          })
-        });
+        // +(node | 0)
+        return babelTypes.unaryExpression(
+          '+',
+          babelTypes.binaryExpression('|', node, babelTypes.numericLiteral(0)),
+          true
+        );
       }
     }
     if (coercionTypes['f32'] === sourceType) {
       if (coercionTypes['i32'] === resultType) {
-        return new UglifyJS.AST_UnaryPrefix({
-          operator: '~',
-          expression: new UglifyJS.AST_UnaryPrefix({
-            operator: '~',
-            expression: new UglifyJS.AST_UnaryPrefix({
-              operator: '+',
-              expression: node
-            })
-          })
-        });
+        // ~~(+node)
+        return babelTypes.unaryExpression(
+          '~',
+          babelTypes.unaryExpression(
+            '~',
+            babelTypes.unaryExpression('+', node, true),
+            true
+          ),
+          true
+        );
       }
       if (coercionTypes['f64'] === resultType) {
-        let x = new UglifyJS.AST_UnaryPrefix({
-          operator: '+',
-          expression: node
-        });
+        // +node
+        let x = babelTypes.unaryExpression('+', node, true);
         return x;
       }
       if (coercionTypes['f32'] === resultType) {
@@ -130,13 +104,12 @@
     }
     if (coercionTypes['f64'] === sourceType) {
       if (coercionTypes['i32'] === resultType) {
-        return new UglifyJS.AST_UnaryPrefix({
-          operator: '~',
-          expression: new UglifyJS.AST_UnaryPrefix({
-            operator: '~',
-            expression: node
-          })
-        });
+        // ~~node
+        return babelTypes.unaryExpression(
+          '~',
+          babelTypes.unaryExpression('~', node, true),
+          true
+        );
       }
       if (coercionTypes['f64'] === resultType) {
         return makeAsmAnnotation(node, coercionTypes['f64']);
@@ -177,21 +150,16 @@
         const arr = binaryen['expandType'](funcInfo['params']);
         for (let i = 0, len = arr.length; i !== len; ++i) {
           const paramName = ['$', funcShortname, '_', genStrId(i)].join('');
-          argnames[argnames.length] = new UglifyJS.AST_SymbolFunarg({
-            name: paramName
-          });
+          argnames[argnames.length] = babelTypes.identifier(paramName);
 
           //process.stderr.write('TYPE: ' + JSON.stringify(funcInfo) + '\n');
-          body[body.length] = new UglifyJS.AST_SimpleStatement({
-            body: new UglifyJS.AST_Assign({
-              left: new UglifyJS.AST_SymbolRef({name: paramName}),
-              operator: '=',
-              right: makeAsmAnnotation(
-                new UglifyJS.AST_SymbolRef({name: paramName}),
-                arr[i]
-              )
-            })
-          });
+          body[body.length] = babelTypes.expressionStatement(
+            babelTypes.assignmentExpression(
+              '=',
+              babelTypes.identifier(paramName),
+              makeAsmAnnotation(babelTypes.identifier(paramName), arr[i])
+            )
+          );
         }
         numParams = arr.length;
       }
@@ -230,8 +198,8 @@
 
         const arr = funcInfo['vars'];
         if (0 !== arr.length) {
-          body[body.length] = new UglifyJS.AST_Var({
-            definitions: arr.map((i, idx) => {
+          body[body.length] = babelTypes.variableDeclaration('var', [
+            ...arr.map((i, idx) => {
               if (undefined === asmJsConstructVariable[i])
                 throw 'Function: local type not implemented.';
 
@@ -319,7 +287,7 @@
                   void 0
               );
             })
-          });
+          ]);
         }
 
         if (binaryen['BlockId'] === funcBody.id) {
@@ -401,13 +369,11 @@
         );
       }
 
-      funcInfo['ast'] = new UglifyJS.AST_Defun({
-        name: new UglifyJS.AST_SymbolDefun({
-          name: ['$', funcShortname].join('')
-        }),
-        argnames: argnames,
-        body: body
-      });
+      funcInfo['ast'] = babelTypes.functionDeclaration(
+        babelTypes.identifier(['$', funcShortname].join('')),
+        argnames,
+        babelTypes.blockStatement(body)
+      );
     }
     return wasmFunctions.map(el => el['ast']);
   })();

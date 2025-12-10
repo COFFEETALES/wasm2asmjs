@@ -80,22 +80,17 @@
 
     const offsetNode = createOffsetAst(walker, expr);
 
-    const node = new UglifyJS.AST_Sub({
-      expression: new UglifyJS.AST_SymbolRef({
-        name: ['$', name].join('')
-      }),
-      property:
-        1 === expr.bytes
-          ? offsetNode
-          : new UglifyJS.AST_Binary({
-              left: offsetNode,
-              operator: '>>',
-              right: new UglifyJS.AST_Number({
-                value: shr[expr.bytes],
-                start: {raw: shr[expr.bytes].toString(10)}
-              })
-            })
-    });
+    const node = babelTypes.memberExpression(
+      babelTypes.identifier(['$', name].join('')),
+      1 === expr.bytes
+        ? offsetNode
+        : babelTypes.binaryExpression(
+            '>>',
+            offsetNode,
+            babelTypes.numericLiteral(shr[expr.bytes])
+          ),
+      true
+    );
 
     {
       const parentNode = parentNodes[parentNodes.length - 1];
@@ -122,7 +117,8 @@
           binaryen['EqZInt32'] === parentNode.op,
         binaryen['SelectId'] === parentNode.id,
         binaryen['LoopId'] === parentNode.id,
-        (binaryen['IfId'] === parentNode.id || binaryen['BreakId'] === parentNode.id) &&
+        (binaryen['IfId'] === parentNode.id ||
+          binaryen['BreakId'] === parentNode.id) &&
           expr.srcPtr === parentNode.condition,
         binaryen['ReturnId'] === parentNode.id
       ];
@@ -175,27 +171,22 @@
 
     const offsetNode = createOffsetAst(walker, expr);
 
-    return new UglifyJS.AST_SimpleStatement({
-      body: new UglifyJS.AST_Assign({
-        left: new UglifyJS.AST_Sub({
-          expression: new UglifyJS.AST_SymbolRef({
-            name: ['$', name].join('')
-          }),
-          property:
-            1 === expr.bytes
-              ? offsetNode
-              : new UglifyJS.AST_Binary({
-                  left: offsetNode,
-                  operator: '>>',
-                  right: new UglifyJS.AST_Number({
-                    value: shr[expr.bytes],
-                    start: {raw: shr[expr.bytes].toString(10)}
-                  })
-                })
-        }),
-        operator: '=',
-        right: walker(expr, expr.value)
-      })
-    });
+    return babelTypes.expressionStatement(
+      babelTypes.assignmentExpression(
+        '=',
+        babelTypes.memberExpression(
+          babelTypes.identifier(['$', name].join('')),
+          1 === expr.bytes
+            ? offsetNode
+            : babelTypes.binaryExpression(
+                '>>',
+                offsetNode,
+                babelTypes.numericLiteral(shr[expr.bytes])
+              ),
+          true
+        ),
+        walker(expr, expr.value)
+      )
+    );
   };
 }

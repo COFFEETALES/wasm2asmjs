@@ -3,6 +3,7 @@
 
   const expected_data = [
     'hello, world.',
+    'qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq',
     'segment data 2',
     'segment data 3',
     'X'
