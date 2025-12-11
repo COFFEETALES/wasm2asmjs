@@ -308,7 +308,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   // ^ some children (like LoadId) can return «undef»
 
   return header.concat(
-    (/*'' !== expr.name || */0 !== res.length)
+    '' !== expr.name
       ? //output['warnings']['labeledStatement'] = true,
         babelTypes.labeledStatement(
           babelTypes.identifier(labelValue),
@@ -447,10 +447,17 @@ var visitConstId = function (walker, funcItem, parentNodes, expr, alignType) {
   This code snippet checks whether the floating-point value stored in local variable $0 is less than 0.
   */
   if (binaryen['i32'] === expr.type) {
+    if (expr.value < 0) {
+      return babelTypes.unaryExpression(
+        '-',
+        babelTypes.numericLiteral(-1 * expr.value),
+        true
+      );
+    }
     return babelTypes.numericLiteral(expr.value);
   } else if (binaryen['f32'] === expr.type) {
     addAsmJsHeader('Math_fround');
-    const num = expr.value;
+    const num = Math.abs(expr.value);
     const node = babelTypes.numericLiteral(num);
     const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
     node.extra = {
@@ -460,10 +467,10 @@ var visitConstId = function (walker, funcItem, parentNodes, expr, alignType) {
     };
     return babelTypes.callExpression(
       babelTypes.identifier(['$', 'fround'].join('')),
-      [node]
+      [expr.value < 0.0 ? babelTypes.unaryExpression('-', node, true) : node]
     );
   } else if (binaryen['f64'] === expr.type) {
-    const num = expr.value;
+    const num = Math.abs(expr.value);
     const node = babelTypes.numericLiteral(num);
     const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
     node.extra = {
@@ -471,7 +478,9 @@ var visitConstId = function (walker, funcItem, parentNodes, expr, alignType) {
       raw: raw,
       rawValue: num
     };
-    return node;
+    return expr.value < 0.0
+      ? babelTypes.unaryExpression('-', node, true)
+      : node;
   }
   throw 'ConstId missing impl.';
 };

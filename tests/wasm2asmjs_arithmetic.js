@@ -77,6 +77,27 @@
     );
 
     module.addFunction(
+      'FfiAdd1',
+      fi,
+      binaryen.f64,
+      [binaryen.f64, binaryen.f64],
+      module.block(null, [
+        module.local.set(2, module.f64.const(123.0)),
+        module.local.set(
+          3,
+          module.f64.add(
+            module.f64.add(
+              module.f64.promote(module.local.get(0, binaryen.f32)),
+              module.f64.convert_s.i32(module.local.get(1, binaryen.i32))
+            ),
+            module.f64.const(456.0)
+          )
+        ),
+        module.return(module.local.get(3, binaryen.f64))
+      ])
+    );
+
+    module.addFunction(
       'fiAdd',
       binaryen.i32,
       binaryen.f32,
@@ -123,6 +144,7 @@
     module.addFunctionExport('iiiAdd', 'export_iiiAdd');
     module.addFunctionExport('fffAdd', 'export_fffAdd');
     module.addFunctionExport('FfiAdd', 'export_FfiAdd');
+    module.addFunctionExport('FfiAdd1', 'export_FfiAdd1');
     module.addFunctionExport('fiAdd', 'export_fiAdd');
 
     module.addFunctionExport('vUpdateGlobal', 'export_vUpdateGlobal');

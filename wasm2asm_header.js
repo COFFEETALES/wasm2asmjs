@@ -4,10 +4,6 @@ const assert = require('assert');
 const path = require('path');
 const fs = require('fs');
 
-//const binaryen = require('binaryen');//require(path.join(__dirname, 'binaryen.js'));
-const babelTypes = require('@babel/types');
-const babelGenerate = require('@babel/generator');
-
 const defs = {};
 
 const output = {

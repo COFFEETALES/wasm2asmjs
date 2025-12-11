@@ -24,13 +24,18 @@
     )
   ).default;
 
+  const babelTypes = await import('@babel/types');
+  const babelGenerate = await import('@babel/generator');
+
   const sandbox = {
-    'require': require,
-    'process': process,
-    '__filename': __filename,
     '__dirname': __dirname,
+    '__filename': __filename,
+    'babelGenerate': babelGenerate,
+    'babelTypes': babelTypes,
+    'binaryen': binaryen,
     'console': console,
-    'binaryen': binaryen
+    'process': process,
+    'require': require
   };
 
   let ctx = vm.createContext(sandbox);

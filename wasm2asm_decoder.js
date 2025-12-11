@@ -240,7 +240,7 @@
         babelTypes.newExpression(babelTypes.identifier('ArrayBuffer'), [
           babelTypes.numericLiteral(
             undefined !== defs['ASMJS_HEAP_SIZE']
-              ? defs['ASMJS_HEAP_SIZE']
+              ? Number(defs['ASMJS_HEAP_SIZE'])
               : 0x10000
           )
         ])
@@ -398,11 +398,15 @@
 
   asmJsConstructVariable[binaryen['i32']] = function (name, num) {
     if ('number' !== typeof num) {
-      num = 0.0;
+      num = 0;
     }
+    const node =
+      num < 0
+        ? babelTypes.numericLiteral(-1 * num)
+        : babelTypes.numericLiteral(num);
     return babelTypes.variableDeclarator(
       babelTypes.identifier(name),
-      babelTypes.numericLiteral(num)
+      num < 0 ? babelTypes.unaryExpression('-', node, true) : node
     );
   };
 
@@ -411,8 +415,10 @@
       num = 0.0;
     }
     addAsmJsHeader('Math_fround');
-    const node = babelTypes.numericLiteral(num);
-    const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
+    const absNum = Math.abs(num);
+    const node = babelTypes.numericLiteral(absNum);
+    const raw =
+      Math.floor(absNum) === absNum ? absNum.toFixed(1) : absNum.toString(10);
     node.extra = {
       ...(node.extra || {}),
       raw: raw,
@@ -420,7 +426,9 @@
     };
     return babelTypes.variableDeclarator(
       babelTypes.identifier(name),
-      babelTypes.callExpression(babelTypes.identifier('$fround'), [node])
+      babelTypes.callExpression(babelTypes.identifier('$fround'), [
+        num < 0.0 ? babelTypes.unaryExpression('-', node, true) : node
+      ])
     );
   };
 
@@ -428,14 +436,19 @@
     if ('number' !== typeof num) {
       num = 0.0;
     }
-    const node = babelTypes.numericLiteral(num);
-    const raw = Math.floor(num) === num ? num.toFixed(1) : num.toString(10);
+    const absNum = Math.abs(num);
+    const node = babelTypes.numericLiteral(absNum);
+    const raw =
+      Math.floor(absNum) === absNum ? absNum.toFixed(1) : absNum.toString(10);
     node.extra = {
       ...(node.extra || {}),
       raw: raw,
       rawValue: num
     };
-    return babelTypes.variableDeclarator(babelTypes.identifier(name), node);
+    return babelTypes.variableDeclarator(
+      babelTypes.identifier(name),
+      num < 0.0 ? babelTypes.unaryExpression('-', node, true) : node
+    );
   };
 
   var wasmImportedFunctions = [];
