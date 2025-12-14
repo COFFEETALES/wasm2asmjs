@@ -510,7 +510,7 @@ const genStrId = function (num) {
                   ['$']
                     .concat(
                       null === i
-                        ? ['f_', o, '_', 'foo'].join('')
+                        ? ['f', o, 'foo'].join('_')
                         : undefined !== i['encoded_name']
                         ? ['f', i['encoded_name']].join('_')
                         : i['name']

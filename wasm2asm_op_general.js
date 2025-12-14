@@ -1,5 +1,6 @@
 'use strict';
 
+/*
 {
   const labelList = [];
   var getLabelName = n => {
@@ -11,6 +12,9 @@
     return ['$', 'label_', genStrId(id)].join('');
   };
 }
+*/
+
+var getLabelName = n => ['$', 'label_', n].join('');
 
 var cmpOperators = {};
 cmpOperators[binaryen['EqInt32']] = true;
@@ -61,14 +65,14 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   //  throw 'BlockId: 0 !== br_if.length && \'\' === expr.name';
   //}
 
-  const labelValue = '' !== expr.name ? getLabelName(expr.name) : null;
+  const labelValue = ![null, ''].includes(expr.name) ? getLabelName(expr.name) : null;
 
   const header = [];
 
   if (
     true === output['optimize_for_js'] &&
     0 !== expr.children.length &&
-    '' !== expr.name
+    ![null, ''].includes(expr.name)
   ) {
     (function x(children) {
       while (0 !== children.length) {
@@ -302,13 +306,18 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
     }
   }
 
+  if (1 === expr.children.length) {
+    const childExpr = binaryen.getExpressionInfo(expr.children[0]);
+    console.log('childExpr:', childExpr);
+  }
+
   const res = expr.children
     .flatMap(item => walker(expr, item))
     .filter(item => undefined !== item);
   // ^ some children (like LoadId) can return «undef»
 
   return header.concat(
-    '' !== expr.name
+    ![null, ''].includes(expr.name)
       ? //output['warnings']['labeledStatement'] = true,
         babelTypes.labeledStatement(
           babelTypes.identifier(labelValue),

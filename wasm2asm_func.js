@@ -166,7 +166,7 @@
       {
         const funcBody = binaryen.getExpressionInfo(funcInfo['body']);
         let c = [];
-        if (binaryen['BlockId'] === funcBody.id && '' === funcBody.name) {
+        if (binaryen['BlockId'] === funcBody.id && [null, ''].includes(funcBody.name)) {
           //if ( '' !== funcBody['name'] )
           //{ throw 'binaryen[\'BlockId\'] === funcBody.id && \'\' !== funcBody.name'; }
 

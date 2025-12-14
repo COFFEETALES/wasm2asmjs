@@ -3,7 +3,7 @@
 {
   var visitBreakId = function (walker, funcItem, parentNodes, expr) {
     if (0 !== expr.value) throw 'BreakId: 0 !== expr.value';
-    if ('' === expr.name) throw "BreakId: '' === expr.name";
+    if ([null, ''].includes(expr.name)) throw "BreakId: '' === expr.name";
 
     const dest = (function () {
       const arr = parentNodes.slice().reverse();
@@ -58,7 +58,7 @@
   };
 
   var visitLoopId = function (walker, funcItem, parentNodes, expr) {
-    if ('' === expr.name) throw 'LoopId: Label value undefined.';
+    if ([null, ''].includes(expr.name)) throw 'LoopId: Label value undefined.';
 
     const labelValue = getLabelName(expr.name);
     // ^ The label is generated regardless of the situation. When JS optimizations are enabled, the name is not necessarily used but is still retained.
@@ -71,7 +71,7 @@
       blockExpr = binaryen.getExpressionInfo(
         decodedModule.block(null, [expr.body])
       );
-    if ('' !== blockExpr.name)
+    if (![null, ''].includes(blockExpr.name))
       expr['nameList'][expr['nameList'].length] = blockExpr.name;
 
     let resultLoop = null;
@@ -179,6 +179,7 @@
                   decodedModule.block('', blockExpr.children, blockExpr.type)
                 ).flat());
 
+              /*
               bodyArray.splice(
                 bodyExpr.children.length * -1,
                 0,
@@ -192,6 +193,11 @@
                 null,
                 null,
                 null,
+                babelTypes.blockStatement(bodyArray)
+              );
+              */
+              resultLoop = babelTypes.whileStatement(
+                walker([expr, blockExpr], lastExpr.condition),
                 babelTypes.blockStatement(bodyArray)
               );
               break $label_1;
