@@ -12,7 +12,7 @@ const output = {
   'js': false,
   'metadata': false,
   'optimize_for_js':
-    //undefined !== process.env['optimize_for_js'] ? Boolean(process.env['optimize_for_js']) : true
+    //void 0 !== process.env['optimize_for_js'] ? Boolean(process.env['optimize_for_js']) : true
     '1' === process.env['ASMJS_OPTIMIZE_FOR_JS'],
   'warnings': {
     'labeledStatement': false

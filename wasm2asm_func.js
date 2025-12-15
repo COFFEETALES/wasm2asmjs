@@ -44,6 +44,18 @@
 
   var makeAsmCoercion = function (node, sourceType, resultType) {
     if (coercionTypes['u32'] === sourceType) {
+      if (coercionTypes['f64'] === resultType) {
+        // +(node >>> 0)
+        return babelTypes.unaryExpression(
+          '+',
+          babelTypes.binaryExpression(
+            '>>>',
+            node,
+            babelTypes.numericLiteral(0)
+          ),
+          true
+        );
+      }
       if (coercionTypes['f32'] === resultType) {
         addAsmJsHeader('Math_fround');
         // $fround(node >>> 0)
@@ -135,7 +147,7 @@
       const funcInfo = wasmFunctions[funcIdx];
 
       const funcShortname =
-        undefined !== funcInfo['encoded_name']
+        void 0 !== funcInfo['encoded_name']
           ? ['f', funcInfo['encoded_name']].join('_')
           : funcInfo['name'];
 
@@ -186,7 +198,7 @@
               const d = {};
               d[binaryen['i32']] = decodedModule.i32;
               d[binaryen['f32']] = decodedModule.f32;
-              if (undefined === d[funcInfo['results']]) {
+              if (void 0 === d[funcInfo['results']]) {
                 throw "undefined === d[funcInfo['results']]";
               }
               c[c.length] = decodedModule.return(
@@ -200,7 +212,7 @@
         if (0 !== arr.length) {
           body[body.length] = babelTypes.variableDeclaration('var', [
             ...arr.map((i, idx) => {
-              if (undefined === asmJsConstructVariable[i])
+              if (void 0 === asmJsConstructVariable[i])
                 throw 'Function: local type not implemented.';
 
               const localIdx = idx + numParams;
@@ -212,17 +224,17 @@
                   return expr.children
                     .map(ptr => x(ptr))
                     .flat(Infinity)
-                    .filter(item => undefined !== item)
+                    .filter(item => void 0 !== item)
                     .pop();
                 } else if (binaryen['BreakId'] === expr['id']) {
                   return [x(expr['value']), x(expr['condition'])]
                     .flat(Infinity)
-                    .filter(item => undefined !== item)
+                    .filter(item => void 0 !== item)
                     .pop();
                 } else if (binaryen['BinaryId'] === expr['id']) {
                   return [x(expr['left']), x(expr['right'])]
                     .flat(Infinity)
-                    .filter(item => undefined !== item)
+                    .filter(item => void 0 !== item)
                     .pop();
                 } else if (binaryen['UnaryId'] === expr['id']) {
                   return x(expr['value']);
@@ -243,7 +255,7 @@
                   return expr['operands']
                     .map(i => x(i))
                     .flat(Infinity)
-                    .filter(item => undefined !== item)
+                    .filter(item => void 0 !== item)
                     .pop();
                 }
                 return 0;
@@ -333,9 +345,9 @@
             const expr = Object.assign(binaryen.getExpressionInfo(exprPtr), {
               'srcPtr': exprPtr
             });
-            if (undefined === expressionList[expr.id])
+            if (void 0 === expressionList[expr.id])
               throw ['Missing ', expr.id, ' data.'].join('');
-            if (undefined === f[expr.id])
+            if (void 0 === f[expr.id])
               throw ['Operation not implemented.', JSON.stringify(expr)].join(
                 '\n'
               );
@@ -344,7 +356,7 @@
               {info: funcInfo, idx: funcIdx, shortname: funcShortname},
               parentNodes,
               expr,
-              undefined !== arguments[2] ? arguments[2] : binaryen['auto']
+              void 0 !== arguments[2] ? arguments[2] : binaryen['auto']
             ];
             parentExpr = [].concat(parentExpr);
             if (

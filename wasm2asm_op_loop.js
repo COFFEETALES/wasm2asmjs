@@ -16,7 +16,7 @@
       );
     })();
 
-    if (undefined === dest)
+    if (void 0 === dest)
       throw ['BreakId: undefined dest: ', expr.name, '.'].join('');
     if (
       binaryen['LoopId'] === dest.id &&
@@ -76,6 +76,7 @@
 
     let resultLoop = null;
     $label_1: if (true === output['optimize_for_js']) {
+      // 1
       {
         const lastSrc = blockExpr.children[blockExpr.children.length - 1];
         const item = getUnlinkedBr(blockExpr.children).find(
@@ -116,6 +117,7 @@
           } // ~ if ( 0 === item.value )
         } // ~ if ( item )
       }
+      // 2
       {
         const arr = blockExpr.children
           .slice(-2)
@@ -157,7 +159,8 @@
           }
         } // ~ if ( arr.every( i => binaryen['BreakId'] === i.id ) ) {
       }
-      {
+      // 3
+      if (1 === blockExpr.children.length) {
         const lastSrc = blockExpr.children[blockExpr.children.length - 1];
         const lastExpr = binaryen.getExpressionInfo(lastSrc);
         if (binaryen['IfId'] === lastExpr.id && 0 === lastExpr.ifFalse) {
@@ -205,6 +208,7 @@
           }
         }
       }
+      // 4
       if (1 === blockExpr.children.length) {
         const lastSrc = blockExpr.children[0];
         const lastExpr = binaryen.getExpressionInfo(lastSrc);

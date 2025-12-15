@@ -14,7 +14,7 @@
 }
 */
 
-var getLabelName = n => ['$', 'label_', n].join('');
+var getLabelName = n => ['$', 'label', '_', n].join('');
 
 var cmpOperators = {};
 cmpOperators[binaryen['EqInt32']] = true;
@@ -74,6 +74,9 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
     0 !== expr.children.length &&
     ![null, ''].includes(expr.name)
   ) {
+    // x is called recursively to handle nested blocks
+    // x modifies directly expr.children to remove extracted assignments (GlobalSetId, LocalSetId)
+    // header is filled with extracted assignments
     (function x(children) {
       while (0 !== children.length) {
         const firstExpr = binaryen.getExpressionInfo(children[0]);
@@ -98,23 +101,25 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
         break;
       }
     })(expr.children);
-    //header = header.filter( (item) => undefined !== item );
+    //header = header.filter( (item) => void 0 !== item );
 
+    // blockOptimizer is defined to optimize patterns
     const optimizedResult = (function blockOptimizer(
       blockType,
       blockName,
       children
     ) {
-      if ('' === blockName) {
+      if ([null, ''].includes(blockName)) {
         return children;
       }
+
       for (let i = children.length - 1; i !== -1; --i) {
-        const firstExpr = binaryen.getExpressionInfo(children[i]);
-        if (binaryen['BlockId'] === firstExpr.id) {
+        const currExpr = binaryen.getExpressionInfo(children[i]);
+        if (binaryen['BlockId'] === currExpr.id) {
           const retVal = blockOptimizer(
-            firstExpr.type,
-            firstExpr.name,
-            firstExpr.children
+            currExpr.type,
+            currExpr.name,
+            currExpr.children
           );
           Array.prototype.splice.apply(children, [i, 1].concat(retVal));
         }
@@ -301,19 +306,15 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
       return header.concat(
         expr.children
           .flatMap(item => walker(expr, item))
-          .filter(item => undefined !== item)
+          .filter(item => void 0 !== item)
       );
     }
   }
 
-  if (1 === expr.children.length) {
-    const childExpr = binaryen.getExpressionInfo(expr.children[0]);
-    console.log('childExpr:', childExpr);
-  }
 
   const res = expr.children
     .flatMap(item => walker(expr, item))
-    .filter(item => undefined !== item);
+    .filter(item => void 0 !== item);
   // ^ some children (like LoadId) can return «undef»
 
   return header.concat(
@@ -609,7 +610,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
   //
   ////
 
-  if (undefined === op[expr.op])
+  if (void 0 === op[expr.op])
     throw ['BinaryId: opcode not implemented. ', expr.op].join('');
 
   const prepareNode = ptr => {
@@ -714,7 +715,7 @@ var visitCallId = function (walker, funcItem, parentNodes, expr, alignType) {
     if ('undefined' !== typeof callFn['std']) {
       return callFn['encoded_name'];
     }
-    if (undefined !== callFn['encoded_name']) {
+    if (void 0 !== callFn['encoded_name']) {
       return ['' !== callFn['base'] ? 'if' : 'f', callFn['encoded_name']].join(
         '_'
       );
@@ -759,7 +760,7 @@ var visitCallIndirectId = function (
     h[binaryen['i32']] = 'i';
     h[binaryen['f32']] = 'f';
     h[binaryen['f64']] = 'F';
-    if (undefined === h[i]) {
+    if (void 0 === h[i]) {
       throw 'visitCallIndirectId: funcTypeSignature';
     }
     return h[i];

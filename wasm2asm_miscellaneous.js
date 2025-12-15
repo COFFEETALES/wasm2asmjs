@@ -200,7 +200,7 @@ print( simplify_logic( my_op, None, True, False ) )
         }
       })
       .flat(Infinity)
-      .filter(item => undefined !== item);
+      .filter(item => void 0 !== item);
   };
 }
 {
@@ -511,7 +511,7 @@ const genStrId = function (num) {
                     .concat(
                       null === i
                         ? ['f', o, 'foo'].join('_')
-                        : undefined !== i['encoded_name']
+                        : void 0 !== i['encoded_name']
                         ? ['f', i['encoded_name']].join('_')
                         : i['name']
                     )
@@ -547,7 +547,7 @@ const genStrId = function (num) {
 
   var processAsmJsImports = function () {
     return wasmImportedFunctions
-      .filter(i => undefined === i['std'])
+      .filter(i => void 0 === i['std'])
       .map(function (item) {
         return babelTypes.variableDeclarator(
           babelTypes.identifier(

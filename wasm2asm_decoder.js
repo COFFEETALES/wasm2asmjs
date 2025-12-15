@@ -26,7 +26,7 @@
     return fs.readFileSync(absFilePath, {encoding: 'utf8'});
   };
 
-  if (undefined !== defs['NDEBUG']) {
+  if (void 0 !== defs['NDEBUG']) {
     binaryen.setOptimizeLevel(4);
     binaryen.setShrinkLevel(2);
   } else {
@@ -239,7 +239,7 @@
         metadataId,
         babelTypes.newExpression(babelTypes.identifier('ArrayBuffer'), [
           babelTypes.numericLiteral(
-            undefined !== defs['ASMJS_HEAP_SIZE']
+            void 0 !== defs['ASMJS_HEAP_SIZE']
               ? Number(defs['ASMJS_HEAP_SIZE'])
               : 0x10000
           )
@@ -313,7 +313,16 @@
                           endPoint - lastIndex
                         )
                       )
-                      .map(j => babelTypes.numericLiteral(j))
+                      .map(j => {
+                        if (j < 0) {
+                          return babelTypes.unaryExpression(
+                            '-',
+                            babelTypes.numericLiteral(-1 * j),
+                            true
+                          );
+                        }
+                        return babelTypes.numericLiteral(j);
+                      })
                   ),
                   babelTypes.numericLiteral(
                     Math.trunc(arr[0]['byteOffset'] / 4) + lastIndex
@@ -456,14 +465,14 @@
     .map(i => {
       const ptr = decodedModule.getExportByIndex(i);
       const expInfo = binaryen.getExportInfo(ptr);
-      if (binaryen['ExternalFunction'] !== expInfo.kind) return undefined;
+      if (binaryen['ExternalFunction'] !== expInfo.kind) return void 0;
 
       const funcPtr = decodedModule.getFunction(expInfo.value);
       const funcInfo = binaryen.getFunctionInfo(funcPtr);
 
       return Object.assign(funcInfo, {'ast': null});
     })
-    .filter(e => undefined !== e);
+    .filter(e => void 0 !== e);
 
   var wasmGlobals = [];
 

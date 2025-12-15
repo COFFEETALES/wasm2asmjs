@@ -13,7 +13,7 @@ Planned improvements (revised):
 1. 🔄 **Swap UglifyJS for `@babel/generator`** ✅
    * Use modern Babel-based code generation for asm.js output. ✅
 2. 🧹 **Integrate Google Closure Compiler** ⏳
-   * Use Closure for advanced compilation, linting, and minification of the generated asm.js.
+   * Use Closure for advanced compilation, linting, and minification.
    * Modularize the codebase (clear passes: parse → transform → generate) and remove legacy utilities.
    * Add type discipline: JSDoc typedefs compatible with Closure.
 3. 🌐 **Backends** ⏳
@@ -47,12 +47,7 @@ Usage
 -----
 
 ``` bash
-$> npm install @babel/core@8.0.0-beta.3 @babel/types@8.0.0-beta.3 @babel/generator@8.0.0-beta.3
-# ^ used for javascript generation
-$> npm install binaryen
-# ^ wasm parser and optimizer
-$> npm install uglify-js
-# ^ used for javascript generation
+$> npm install
 ```
 
 ### Sample wasm input

@@ -57,7 +57,7 @@
       l[0x100 | 4] = 'i32';
       // ^ Unsigned 32-bit integers are replaced by signed integers due to the particular syntax of asm.js.
 
-      if (undefined === l[(false === expr.isSigned ? 0x100 : 0x0) | expr.bytes])
+      if (void 0 === l[(false === expr.isSigned ? 0x100 : 0x0) | expr.bytes])
         throw 'LoadId: l[(false===expr.isSigned?0x100:0x0)|expr.bytes] not defined.';
 
       name = l[(false === expr.isSigned ? 0x100 : 0x0) | expr.bytes];
@@ -75,7 +75,7 @@
     shr[4] = 2;
     shr[8] = 3;
 
-    if (1 !== expr.bytes && undefined === shr[expr.bytes])
+    if (1 !== expr.bytes && void 0 === shr[expr.bytes])
       throw 'LoadId: shr[expr.bytes] not defined.';
 
     const offsetNode = createOffsetAst(walker, expr);
@@ -147,7 +147,7 @@
       l[2] = 'i16';
       l[4] = 'i32';
 
-      if (undefined === l[expr.bytes])
+      if (void 0 === l[expr.bytes])
         throw 'StoreId: l[expr.bytes] not defined.';
 
       name = l[expr.bytes];
@@ -166,7 +166,7 @@
     shr[4] = 2;
     shr[8] = 3;
 
-    if (1 !== expr.bytes && undefined === shr[expr.bytes])
+    if (1 !== expr.bytes && void 0 === shr[expr.bytes])
       throw 'StoreId: shr[expr.bytes] not defined.';
 
     const offsetNode = createOffsetAst(walker, expr);

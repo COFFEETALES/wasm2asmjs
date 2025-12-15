@@ -26,7 +26,7 @@
           processAsmJsFTable(),
           asmJsReturn
         )
-        .filter(i => i !== undefined)
+        .filter(i => void 0 !== i)
     )
   );
 
