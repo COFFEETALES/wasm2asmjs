@@ -5,6 +5,10 @@
     if (0 !== expr.value) throw 'BreakId: 0 !== expr.value';
     if ([null, ''].includes(expr.name)) throw "BreakId: '' === expr.name";
 
+    if ('__WASM2ASM_INTERNAL_BREAK__' === expr.name) {
+      return babelTypes.breakStatement();
+    }
+
     const dest = (function () {
       const arr = parentNodes.slice().reverse();
       return (
@@ -63,8 +67,17 @@
     const labelValue = getLabelName(expr.name);
     // ^ The label is generated regardless of the situation. When JS optimizations are enabled, the name is not necessarily used but is still retained.
 
+    const parentNode = parentNodes[parentNodes.length - 1];
+
     expr['nested'] = false;
     expr['nameList'] = [expr.name];
+    if (
+      true === output['optimize_for_js'] &&
+      1 === parentNode.children.length &&
+      binaryen['BlockId'] === parentNode.id
+    ) {
+      expr['nameList'][expr['nameList'].length] = parentNode.name;
+    }
 
     let blockExpr = binaryen.getExpressionInfo(expr.body);
     if (binaryen['BlockId'] !== blockExpr.id)
@@ -76,15 +89,54 @@
 
     let resultLoop = null;
     $label_1: if (true === output['optimize_for_js']) {
+      const firstSrc = blockExpr.children[0];
+      const firstExpr = binaryen.getExpressionInfo(firstSrc);
+
+      const lastSrc = blockExpr.children[blockExpr.children.length - 1];
+      const lastExpr = binaryen.getExpressionInfo(lastSrc);
+
+      // JS-friendly loop normalization:
+      // detect trailing 'br'/'br_if' that targets this loop and rewrite
+      // 'loop { ...; br ... }' into native JS loops (for(;;), do..while, while)
+      // by popping the terminal break and using its condition as the loop test.
       // 1
       {
-        const lastSrc = blockExpr.children[blockExpr.children.length - 1];
-        const item = getUnlinkedBr(blockExpr.children).find(
-          elem => lastSrc === elem['srcPtr'] && expr.name === elem['name']
+        const item = findNonLocalBreaks(blockExpr.children).find(
+          elem =>
+            lastSrc === elem['srcPtr'] &&
+            expr['nameList'].includes(elem['name'])
         );
         if (item) {
           if (0 === item.value) {
             if (0 === item.condition) {
+              // Pattern: 'while (1) { if (cond) br L; ... }'.
+              // Rewrite into 'while (!cond) { ... }' (invert the test and drop the early 'break').
+              if (
+                binaryen['BreakId'] === firstExpr.id &&
+                0 === firstExpr.value &&
+                0 !== firstExpr.condition
+              ) {
+                blockExpr.children = blockExpr.children.splice(
+                  1,
+                  blockExpr.children.length - 2
+                );
+
+                resultLoop = babelTypes.whileStatement(
+                  walker([expr, blockExpr], createEqz(firstExpr.condition)),
+                  babelTypes.blockStatement(
+                    walker(
+                      [expr, blockExpr],
+                      decodedModule.block(
+                        '',
+                        blockExpr.children,
+                        blockExpr.type
+                      )
+                    ).flat()
+                  )
+                );
+                break $label_1;
+              }
+
               resultLoop = babelTypes.forStatement(
                 null,
                 null,
@@ -117,6 +169,8 @@
           } // ~ if ( 0 === item.value )
         } // ~ if ( item )
       }
+      // Pattern: two trailing breaks to this loop: 'br_if L cond; br L'.
+      // Rewrite to a single 'br_if L !cond' (invert the condition) so we can emit a simple JS 'for(;;)' loop.
       // 2
       {
         const arr = blockExpr.children
@@ -126,7 +180,7 @@
           2 === arr.length &&
           arr.every(i => binaryen['BreakId'] === i.id && 0 === i.value)
         ) {
-          if (expr.name === arr[0]['name']) {
+          if (expr['nameList'].includes(arr[0]['name'])) {
             if (0 !== arr[0].condition) {
               if (0 === arr[1].condition) {
                 resultLoop = babelTypes.forStatement(
@@ -157,25 +211,37 @@
               }
             }
           }
-        } // ~ if ( arr.every( i => binaryen['BreakId'] === i.id ) ) {
+        } // ~ if ( arr.every( i => binaryen['BreakId'] === i.id ) )
       }
+      // Pattern: 'if (cond) { ...; br L }' as the only loop body statement.
+      // Rewrite into a JS 'while (cond) { ... }' by removing the final 'br' and lifting the block body.
       // 3
-      if (1 === blockExpr.children.length) {
-        const lastSrc = blockExpr.children[blockExpr.children.length - 1];
-        const lastExpr = binaryen.getExpressionInfo(lastSrc);
+      {
         if (binaryen['IfId'] === lastExpr.id && 0 === lastExpr.ifFalse) {
           const bodyExpr = binaryen.getExpressionInfo(lastExpr.ifTrue);
           if (binaryen['BlockId'] === bodyExpr.id) {
             const lastBodySrc = bodyExpr.children.pop();
-            const item = getUnlinkedBr(blockExpr.children).find(
+            const item = findNonLocalBreaks(blockExpr.children).find(
               elem =>
-                lastBodySrc === elem['srcPtr'] && expr.name === elem['name']
+                lastBodySrc === elem['srcPtr'] &&
+                expr['nameList'].includes(elem['name'])
             );
             if (item && 0 === item.condition && 0 === item.value) {
+              const isOnlyIfInLoopBody = 1 === blockExpr.children.length;
+              const rewrittenLoopBodyExprs = isOnlyIfInLoopBody
+                ? bodyExpr.children
+                : [
+                    decodedModule.if(
+                      createEqz(lastExpr.condition),
+                      decodedModule.br('__WASM2ASM_INTERNAL_BREAK__'),
+                      null
+                    ),
+                    bodyExpr.children
+                  ].flat();
               const bodyArray =
                 (Array.prototype.splice.apply(
                   blockExpr.children,
-                  [-1, 1].concat(bodyExpr.children)
+                  [-1, 1].concat(rewrittenLoopBodyExprs)
                 ),
                 walker(
                   [expr, blockExpr],
@@ -199,6 +265,16 @@
                 babelTypes.blockStatement(bodyArray)
               );
               */
+              if (!isOnlyIfInLoopBody) {
+                resultLoop = babelTypes.forStatement(
+                  null,
+                  null,
+                  null,
+                  babelTypes.blockStatement(bodyArray)
+                );
+                break $label_1;
+              }
+
               resultLoop = babelTypes.whileStatement(
                 walker([expr, blockExpr], lastExpr.condition),
                 babelTypes.blockStatement(bodyArray)
@@ -208,24 +284,25 @@
           }
         }
       }
+      // Pattern: a single 'if (cond) { ... } else { ...; br L }' as the whole loop body.
+      // Turn it into 'for(;;) { if (cond) { ...; break; } /* else-body without the final br */ }'.
       // 4
       if (1 === blockExpr.children.length) {
-        const lastSrc = blockExpr.children[0];
-        const lastExpr = binaryen.getExpressionInfo(lastSrc);
-        if (binaryen['IfId'] === lastExpr.id && 0 !== lastExpr.ifFalse) {
-          const ifFalseExpr = binaryen.getExpressionInfo(lastExpr.ifFalse);
+        if (binaryen['IfId'] === firstExpr.id && 0 !== firstExpr.ifFalse) {
+          const ifFalseExpr = binaryen.getExpressionInfo(firstExpr.ifFalse);
           if (binaryen['BlockId'] === ifFalseExpr.id) {
             const lastIfFalseSrc = ifFalseExpr.children.pop();
-            const item = getUnlinkedBr(blockExpr.children).find(
+            const item = findNonLocalBreaks(blockExpr.children).find(
               elem =>
-                lastIfFalseSrc === elem['srcPtr'] && expr.name === elem['name']
+                lastIfFalseSrc === elem['srcPtr'] &&
+                expr['nameList'].includes(elem['name'])
             );
             if (item && 0 === item.condition && 0 === item.value) {
               const bodyArray = [
                 babelTypes.ifStatement(
-                  walker([expr, blockExpr], lastExpr.condition),
+                  walker([expr, blockExpr], firstExpr.condition),
                   babelTypes.blockStatement(
-                    walker([expr, blockExpr], lastExpr.ifTrue)
+                    walker([expr, blockExpr], firstExpr.ifTrue)
                       .flat()
                       .concat(babelTypes.breakStatement())
                   )

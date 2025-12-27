@@ -37,7 +37,7 @@ print( simplify_logic( my_op, None, True, False ) )
           binaryen['UnaryId'] === expr.id &&
           binaryen['EqZInt32'] === expr.op
         ) {
-          return x(expr.value, eqz ^ 1);
+          return expr.value;
         } else if (
           binaryen['BinaryId'] === expr.id &&
           binaryen['XorInt32'] === expr.op
@@ -159,7 +159,7 @@ print( simplify_logic( my_op, None, True, False ) )
     );
   };
 
-  var getUnlinkedBr = function (expressionList) {
+  var findNonLocalBreaks = function (expressionList) {
     expressionList = [].concat(expressionList);
 
     const stack = [];

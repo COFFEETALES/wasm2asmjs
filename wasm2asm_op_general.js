@@ -59,25 +59,33 @@ uintOperators[binaryen['GtUInt32']] = true;
 uintOperators[binaryen['GeUInt32']] = true;
 
 var visitBlockId = function (walker, funcItem, parentNodes, expr) {
-  //const br_if = getUnlinkedBr(expr.children);
+  //const br_if = findNonLocalBreaks(expr.children);
   //process.stderr.write(JSON.stringify(br_if)+'\n');
   //if ( 0 !== br_if.length && '' === expr.name ) {
   //  throw 'BlockId: 0 !== br_if.length && \'\' === expr.name';
   //}
 
-  const labelValue = ![null, ''].includes(expr.name) ? getLabelName(expr.name) : null;
+  const labelValue = ![null, ''].includes(expr.name)
+    ? getLabelName(expr.name)
+    : null;
 
   const header = [];
+  const res = [];
 
   if (
     true === output['optimize_for_js'] &&
     0 !== expr.children.length &&
     ![null, ''].includes(expr.name)
   ) {
-    // x is called recursively to handle nested blocks
-    // x modifies directly expr.children to remove extracted assignments (GlobalSetId, LocalSetId)
-    // header is filled with extracted assignments
-    (function x(children) {
+    // Extract a "prologue" of leading assignments from the start of the block:
+    // - While the first child is a GlobalSet/LocalSet, move it into 'header'.
+    // - If the first child is a nested Block, recurse into that block first (so we can
+    //   extract its own prologue), then rebuild/replace the Block expression in-place.
+    //
+    // Notes:
+    // - This mutates the 'children' array in-place (it is 'expr.children').
+    // - 'header' is appended with the JS statements produced by 'walker(...)'.
+    (function extractLeadingSetStatements(children) {
       while (0 !== children.length) {
         const firstExpr = binaryen.getExpressionInfo(children[0]);
         if (
@@ -87,7 +95,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
           header[header.length] = walker(expr, children.shift());
           continue;
         } else if (binaryen['BlockId'] === firstExpr.id) {
-          x(firstExpr.children);
+          extractLeadingSetStatements(firstExpr.children);
           children.splice(
             0,
             1,
@@ -104,7 +112,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
     //header = header.filter( (item) => void 0 !== item );
 
     // blockOptimizer is defined to optimize patterns
-    const optimizedResult = (function blockOptimizer(
+    const normalizedBlock = (function normalizeLabeledBlock(
       blockType,
       blockName,
       children
@@ -112,210 +120,56 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
       if ([null, ''].includes(blockName)) {
         return children;
       }
-
       for (let i = children.length - 1; i !== -1; --i) {
         const currExpr = binaryen.getExpressionInfo(children[i]);
         if (binaryen['BlockId'] === currExpr.id) {
-          const retVal = blockOptimizer(
+          const retVal = normalizeLabeledBlock(
             currExpr.type,
             currExpr.name,
             currExpr.children
           );
           Array.prototype.splice.apply(children, [i, 1].concat(retVal));
         }
+        if (1 === children.length) {
+          if (binaryen['LoopId'] === currExpr.id) {
+            return [currExpr.srcPtr];
+          }
+        }
       }
       {
-        let b = getUnlinkedBr(children).filter(i => blockName === i.name);
-
-        const isLastChild = function (item, idx, array) {
-          if (0 !== idx) {
-            if (binaryen['LoopId'] === array[idx - 1].id) return false;
-            if (binaryen['IfId'] === array[idx - 1].id) return true;
-          }
-          const parentArr = 0 === idx ? children : array[idx - 1]['children'];
-          return parentArr[parentArr.length - 1] === item['srcPtr']
-            ? true
-            : false;
-        };
-
-        const compileWasmExpressions = function (arr) {
-          while (0 !== arr.length) {
-            const popped = arr.pop();
-            const parentInst = 0 === arr.length ? null : arr[arr.length - 1];
-            const createdExpr =
-              binaryen['IfId'] === popped['id']
-                ? decodedModule.if(
-                    popped['condition'],
-                    popped['ifTrue'],
-                    popped['ifFalse']
-                  )
-                : decodedModule.block(
-                    popped['name'],
-                    popped['children'],
-                    popped['type']
-                  );
-            if (
-              null === parentInst ||
-              binaryen['BlockId'] === parentInst['id']
-            ) {
-              const parentArr =
-                null === parentInst ? children : parentInst['children'];
-              const id = parentArr.indexOf(popped['srcPtr']);
-              assert.notStrictEqual(-1, id, 'blockOptimizer: idx error');
-              parentArr.splice(id, 1, createdExpr);
-            } else {
-              // IfId
-              if (parentInst['ifTrue'] === popped['srcPtr']) {
-                parentInst['ifTrue'] = createdExpr;
-              } else if (parentInst['ifFalse'] === popped['srcPtr']) {
-                parentInst['ifFalse'] = createdExpr;
-              } else {
-                throw 'blockOptimizer: IfId error';
-              }
-            }
-          }
-        };
+        let b = findNonLocalBreaks(children).filter(i => blockName === i.name);
 
         for (let i = b.length - 1; i !== -1; --i) {
           const curr = b[i];
           if (curr['stack'].some(i => binaryen['LoopId'] === i['id'])) continue;
-
-          //if (..) { .. break label; } ..
-          //TO
-          //if (..) {..} else {..}
-          if (2 <= curr['stack'].length) {
-            const j = curr['stack'].slice(-2);
-            if (curr['stack'].slice(0, -2).every(isLastChild)) {
-              if (
-                binaryen['IfId'] === j[0].id &&
-                0 === j[0].ifFalse &&
-                0 !== j[0].ifTrue
-              ) {
-                if (
-                  j[1]['srcPtr'] === j[0].ifTrue &&
-                  binaryen['BlockId'] === j[1].id &&
-                  curr['srcPtr'] === j[1].children[j[1].children.length - 1]
-                ) {
-                  const parentInst =
-                    2 === curr['stack'].length
-                      ? null
-                      : curr['stack'].slice(-3)[0];
-                  assert.strictEqual(
-                    true,
-                    null === parentInst ||
-                      binaryen['BlockId'] === parentInst.id,
-                    'blockOptimizer: incompatible parentInst'
-                  );
-                  const parentArr =
-                    2 === curr['stack'].length
-                      ? children
-                      : parentInst['children'];
-                  const id = parentArr.indexOf(j[0]['srcPtr']);
-                  const ifFalseArr = parentArr.slice(id + 1);
-                  parentArr.splice(
-                    id,
-                    parentArr.length - id,
-                    decodedModule.if(
-                      j[0].condition,
-                      decodedModule.block('', j[1].children.slice(0, -1)),
-                      0 !== ifFalseArr.length
-                        ? decodedModule.block('', ifFalseArr)
-                        : 0
-                    )
-                  );
-                  compileWasmExpressions(curr['stack'].slice(0, -2));
-                  b = getUnlinkedBr(children).filter(i => blockName === i.name);
-                  continue;
-                }
-              }
-            }
-          }
-
-          //if (..) { break label; } ..
-          //TO
-          //if (!..) {..}
-          if (
-            binaryen['BreakId'] === curr.id &&
-            0 === curr.value &&
-            0 !== curr.condition
-          ) {
-            const parentInst =
-              0 === curr['stack'].length ? null : curr['stack'].slice(-1)[0];
-            assert.strictEqual(
-              true,
-              null === parentInst || binaryen['BlockId'] === parentInst.id,
-              'blockOptimizer: incompatible parentInst'
-            );
-            const parentArr =
-              0 === curr['stack'].length ? children : parentInst['children'];
-            const isAlternativePattern = (function () {
-              const lastChild = binaryen.getExpressionInfo(
-                parentArr[parentArr.length - 1]
-              );
-              return (
-                binaryen['BreakId'] === lastChild.id &&
-                blockName === lastChild.name &&
-                0 === lastChild.value &&
-                0 === lastChild.condition
-              );
-            })();
-            if (isAlternativePattern || curr['stack'].every(isLastChild)) {
-              const id = parentArr.indexOf(curr['srcPtr']);
-              if (isAlternativePattern) {
-                //{ .. if (..) { break label; } .. break label; }
-                //TO
-                //{ .. if (!..) {..} break label; }
-                const afterArr = parentArr.slice(id + 1, -1);
-                parentArr.splice(
-                  id,
-                  parentArr.length - id - 1,
-                  decodedModule.if(
-                    createEqz(curr.condition),
-                    decodedModule.block('', afterArr),
-                    0
-                  )
-                );
-              } else {
-                const afterArr = parentArr.slice(id + 1);
-                if (0 === afterArr.length) {
-                  parentArr.splice(id, 1);
-                } // if ( 0 !== afterArr.length )
-                else {
-                  parentArr.splice(
-                    id,
-                    parentArr.length - id,
-                    decodedModule.if(
-                      createEqz(curr.condition),
-                      decodedModule.block('', afterArr),
-                      0
-                    )
-                  );
-                }
-              }
-              compileWasmExpressions(curr['stack']);
-              b = getUnlinkedBr(children).filter(i => blockName === i.name);
-              continue;
-            }
-          }
         }
         if (0 === b.length) return children;
       }
       return decodedModule.block(blockName, children, blockType);
     })(expr.type, expr.name, expr.children);
-    if (Array.isArray(optimizedResult)) {
-      return header.concat(
-        expr.children
-          .flatMap(item => walker(expr, item))
-          .filter(item => void 0 !== item)
+    if (Array.isArray(normalizedBlock)) {
+      Array.prototype.splice.apply(
+        res,
+        [0, 0].concat(
+          expr.children
+            .flatMap(item => walker(expr, item))
+            .filter(item => void 0 !== item)
+          // ^ some children (like LoadId) can return «undef»
+        )
       );
+      return header.concat(res);
     }
   }
 
-
-  const res = expr.children
-    .flatMap(item => walker(expr, item))
-    .filter(item => void 0 !== item);
-  // ^ some children (like LoadId) can return «undef»
+  Array.prototype.splice.apply(
+    res,
+    [0, 0].concat(
+      expr.children
+        .flatMap(item => walker(expr, item))
+        .filter(item => void 0 !== item)
+      // ^ some children (like LoadId) can return «undef»
+    )
+  );
 
   return header.concat(
     ![null, ''].includes(expr.name)
