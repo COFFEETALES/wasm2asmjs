@@ -26,7 +26,7 @@
     return fs.readFileSync(absFilePath, {encoding: 'utf8'});
   };
 
-  if (void 0 !== defs['NDEBUG']) {
+  if (true === output['optimizations']) {
     binaryen.setOptimizeLevel(4);
     binaryen.setShrinkLevel(2);
   } else {
@@ -162,19 +162,17 @@
   }
 
   var finalizeJs = function (ast, mode) {
-    //delete defs['NDEBUG'];
-    //defs['_DEBUG'] = 1;
     const res = babelGenerate.generate(ast);
 
     {
       if (true === output['warnings']['labeledStatement']) {
         process.stderr.write(
           [
-            '\u2592\u2592\u2592\n',
-            '\u2592\u2592\u2592',
+            '//\u2592\n',
+            '//\u2592',
             ' /!\\ Warning: Labeled statement used.',
             '\n',
-            '\u2592\u2592\u2592\n'
+            '//\u2592\n'
           ].join('')
         );
       }
@@ -399,7 +397,7 @@
     //console.log(generated.code);
     finalizeJs(topLevel, 'metadata');
   }
-  if (false === output['js'] && 'undefined' === typeof CompleteTest) {
+  if (false === output['code'] && 'undefined' === typeof CompleteTest) {
     process.exit(0);
   }
 

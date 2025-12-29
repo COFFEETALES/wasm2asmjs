@@ -73,7 +73,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   const res = [];
 
   if (
-    true === output['optimize_for_js'] &&
+    true === output['optimizations'] &&
     0 !== expr.children.length &&
     ![null, ''].includes(expr.name)
   ) {
@@ -428,7 +428,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
   ////
   // OPTIMIZE FOR JS
   if (
-    true === output['optimize_for_js'] &&
+    true === output['optimizations'] &&
     (binaryen['SubInt32'] === expr.op || binaryen['AddInt32'] === expr.op)
   ) {
     const right = binaryen.getExpressionInfo(expr.right);
@@ -445,7 +445,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
     }
   }
   if (
-    true === output['optimize_for_js'] &&
+    true === output['optimizations'] &&
     (binaryen['XorInt32'] === expr.op || binaryen['AndInt32'] === expr.op)
   ) {
     /*
@@ -658,7 +658,7 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
   //+ Unary addition: type conversion to double
   //- Sign inversion: type correction required
   if (binaryen['EqZInt32'] === expr.op) {
-    if (true === output['optimize_for_js']) {
+    if (true === output['optimizations']) {
       const exprSrc = createEqz(expr.value);
       const exprObj = binaryen.getExpressionInfo(exprSrc);
       if (

@@ -9,11 +9,11 @@ const defs = {};
 const output = {
   'process': false,
   'wast': false,
-  'js': false,
+  'code': false,
   'metadata': false,
-  'optimize_for_js':
-    //void 0 !== process.env['optimize_for_js'] ? Boolean(process.env['optimize_for_js']) : true
-    '1' === process.env['ASMJS_OPTIMIZE_FOR_JS'],
+  'optimizations': ['1', 'on', 'true'].includes(
+    (process.env['WASM2LANG_ENABLE_OPTIMIZATIONS'] || '').toLowerCase()
+  ),
   'warnings': {
     'labeledStatement': false
   }
@@ -21,9 +21,6 @@ const output = {
 
 const argv = process.argv.slice(2).filter(str => {
   if ('--' === str.slice(0, 2)) {
-    if ('--process-wasm' === str.toLowerCase()) output['process'] = true;
-    if ('--emit-wast' === str.toLowerCase()) output['wast'] = true;
-
     const ProcessParameter = function (paramName) {
       if (str.slice(0, paramName.length).toLowerCase() === paramName) {
         if (
@@ -43,11 +40,16 @@ const argv = process.argv.slice(2).filter(str => {
       return false;
     };
 
-    output['js'] = output['js'] || ProcessParameter('--emit-js');
+    output['process'] = Boolean(
+      output['process'] || ProcessParameter('--process-wasm')
+    );
+    output['wast'] = Boolean(output['wast'] || ProcessParameter('--emit-wast'));
+
+    output['code'] = output['code'] || ProcessParameter('--emit-code');
     output['metadata'] =
       output['metadata'] || ProcessParameter('--emit-metadata');
-    output['optimize_for_js'] =
-      output['optimize_for_js'] || ProcessParameter('--optimize-for-js');
+    output['optimizations'] =
+      output['optimizations'] || ProcessParameter('--optimize');
     return false;
   }
   if ('-D' === str.slice(0, 2)) {
@@ -62,7 +64,7 @@ const argv = process.argv.slice(2).filter(str => {
 
 if (
   true === output['wast'] &&
-  (false !== output['js'] || false !== output['metadata'])
+  (false !== output['code'] || false !== output['metadata'])
 )
   throw '';
 

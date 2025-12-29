@@ -5,7 +5,7 @@
     if (0 !== expr.value) throw 'BreakId: 0 !== expr.value';
     if ([null, ''].includes(expr.name)) throw "BreakId: '' === expr.name";
 
-    if ('__WASM2ASM_INTERNAL_BREAK__' === expr.name) {
+    if ('__WASM2LANG_INTERNAL_BREAK__' === expr.name) {
       return babelTypes.breakStatement();
     }
 
@@ -72,7 +72,7 @@
     expr['nested'] = false;
     expr['nameList'] = [expr.name];
     if (
-      true === output['optimize_for_js'] &&
+      true === output['optimizations'] &&
       1 === parentNode.children.length &&
       binaryen['BlockId'] === parentNode.id
     ) {
@@ -88,7 +88,7 @@
       expr['nameList'][expr['nameList'].length] = blockExpr.name;
 
     let resultLoop = null;
-    $label_1: if (true === output['optimize_for_js']) {
+    $label_1: if (true === output['optimizations']) {
       const firstSrc = blockExpr.children[0];
       const firstExpr = binaryen.getExpressionInfo(firstSrc);
 
@@ -172,7 +172,7 @@
       // Pattern: two trailing breaks to this loop: 'br_if L cond; br L'.
       // Rewrite to a single 'br_if L !cond' (invert the condition) so we can emit a simple JS 'for(;;)' loop.
       // 2
-      {
+      if (false) {
         const arr = blockExpr.children
           .slice(-2)
           .map(i => binaryen.getExpressionInfo(i));
@@ -233,7 +233,7 @@
                 : [
                     decodedModule.if(
                       createEqz(lastExpr.condition),
-                      decodedModule.br('__WASM2ASM_INTERNAL_BREAK__'),
+                      decodedModule.br('__WASM2LANG_INTERNAL_BREAK__'),
                       null
                     ),
                     bodyExpr.children

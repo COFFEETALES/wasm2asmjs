@@ -1,12 +1,14 @@
-coffeetales.net/WASM2ASMJS
-==========================
+coffeetales.net/WASM2LANG
+=========================
+
+**Note:** This project was originally named **wasm2asm**, but has been renamed to **wasm2lang** to reflect its updated goal: evolving from a WebAssembly → asm.js converter into a broader WebAssembly → *language* transpilation toolkit (with asm.js as one backend among others).
 
 This tool is primarily intended for internal use. At the moment, the README is not designed to provide extensive explanations. However, we welcome contributions, so please feel free to submit a Pull Request if you have any additions or improvements you would like to share.
 
 Roadmap
 -------
 
-**The journey isn't over — wasm2asmjs still has a bright future ahead!**
+**The journey isn't over — wasm2lang still has a bright future ahead!**
 
 Planned improvements (revised):
 
@@ -24,7 +26,7 @@ Planned improvements (revised):
    * Enforce linting and build checks.
    * Produce artifacts for inspection (e.g., generated asm.js, heap dumps).
 5. 📦 **Publish CLI to npm** ⏳
-   * Provide an installable CLI (`wasm2asmjs`) with clear command usage.
+   * Provide an installable CLI (`wasm2lang`) with clear command usage.
 6. 🧪 **Deterministic test harness (wasm vs asm.js)** ⏳
    * Execute identical workloads via the true WebAssembly binary and the produced asm.js.
    * Compare **HEAP array** contents (and/or slices) to assert bit-for-bit equivalence, enabling near-ISO validation.
@@ -146,7 +148,7 @@ $> npm install
 ```
 
 ``` bash
-$> node wasm2asm.js --emit-metadata --emit-js -DASMJS_BEAUTIFY -DNDEBUG wast:sample.wast
+$> node wasm2lang.js --emit-metadata --emit-code wast:sample.wast
 ```
 
 ### Generated javascript
@@ -192,21 +194,17 @@ Run tests
 ---------
 
 ```
-cd /coffee/dev/wasm2asm
+cd /coffee/dev/wasm2lang
 fn() {
 [[ $- =~ e ]] && prev_errexit=true || prev_errexit=false
 set +e
-for file in 'tests/wasm2asmjs_'*'.js'; do
+for file in 'tests/wasm2lang_'*'.js'; do
   filename="$(basename "$file")"
-  NODE_PATH='/coffee/dev/wasm2asm/node_modules' node \
-    './wasm2asm.js'                              \
-    --validate-asm                               \
-    --trace-asm-parser                           \
+  NODE_PATH='/coffee/dev/wasm2lang/node_modules' node \
+    './wasm2lang.js'                             \
     --emit-metadata                              \
-    --emit-js                                    \
-    --optimize-for-js                            \
-    -DASMJS_BEAUTIFY                             \
-    -DNDEBUG                                     \
+    --emit-code                                  \
+    --optimize                                   \
     "test:$filename"
   if [ $? -ne 0 ]; then
     break
