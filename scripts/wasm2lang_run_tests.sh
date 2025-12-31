@@ -35,7 +35,6 @@ if [ ${#0} -ne ${#prefix} ]; then
         --test-name "$filebase"               \
         --wasm                                \
         1>"${filebase}".wasm.out
-      echo '' 1>&2
 
       echo "----------------------------------------"
 
@@ -48,9 +47,9 @@ if [ ${#0} -ne ${#prefix} ]; then
         --test-name "$filebase"               \
         --asmjs                               \
         1>"${filebase}".asmjs.out
-      echo '' 1>&2
 
       #echo '1' 1>>"${filebase}".asmjs.out
+      echo "----------------------------------------"
 
       diff -s                                 \
         "${filebase}".wasm.out                \

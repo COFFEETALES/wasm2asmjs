@@ -44,6 +44,33 @@
     /* shared */ false
   );
 
+  module.addGlobal(
+    'heapTop',
+    binaryen.i32,
+    /* mutable */ true,
+    module.i32.const(harness.heapBase)
+  );
+
+  module.addFunction(
+    'updateHeapTopToTheNextAligned',
+    /*params*/ binaryen.none,
+    /*result*/ binaryen.none,
+    [],
+    module.block(null, [
+      module.global.set(
+        'heapTop',
+        module.i32.and(
+          module.i32.add(
+            module.global.get('heapTop', binaryen.i32),
+            module.i32.const(255)
+          ),
+          module.i32.const(~255)
+        )
+      ),
+      module.return()
+    ])
+  );
+
   module.addFunction(
     'emitSegmentsToHost',
     /*params*/ binaryen.none,
@@ -89,6 +116,20 @@
               module.i32.store8(
                 0,
                 1,
+                // get heap top
+                module.global.get('heapTop', binaryen.i32),
+                module.local.get(3, binaryen.i32)
+              ),
+              module.global.set(
+                'heapTop',
+                module.i32.add(
+                  module.global.get('heapTop', binaryen.i32),
+                  module.i32.const(1)
+                )
+              ),
+              module.i32.store8(
+                0,
+                1,
                 module.i32.add(
                   module.i32.const(128),
                   module.local.get(2, binaryen.i32)
@@ -115,8 +156,28 @@
                       module.i32.const(128),
                       module.local.get(2, binaryen.i32)
                     ),
+                    module.i32.const(0xA)
+                  ),
+                  module.i32.store8(
+                    0,
+                    1,
+                    module.i32.add(
+                      module.i32.const(1),
+                      module.i32.add(
+                        module.i32.const(128),
+                        module.local.get(2, binaryen.i32)
+                      )
+                    ),
                     module.i32.const(0)
                   ),
+                  module.i32.store8(
+                    0,
+                    1,
+                    // get heap top
+                    module.global.get('heapTop', binaryen.i32),
+                    module.i32.const(0xA)
+                  ),
+                  module.call('updateHeapTopToTheNextAligned', [], binaryen.none),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('segment_block')
                 ]),
@@ -128,6 +189,7 @@
                   module.i32.const(0)
                 ),
                 module.block(null, [
+                  module.call('updateHeapTopToTheNextAligned', [], binaryen.none),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('byte_block')
                 ])

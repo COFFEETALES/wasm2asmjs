@@ -14,6 +14,8 @@
 
   const harness = require(['./', testName, '.harness.js'].join(''));
 
+  let instanceMemoryBuffer = null;
+
   if (wasm) {
     const bin = fs.readFileSync(0);
 
@@ -21,9 +23,8 @@
       'module': harness.moduleImports
     });
     harness.setInstanceMemoryBuffer(
-      instance.exports.memory.buffer
+      instanceMemoryBuffer = instance.exports.memory.buffer
     );
-    process.stderr.write("memory size: " + instance.exports.memory.buffer.byteLength + "\n");
     harness.runTest(instance.exports);
   }
   if (asmjs) {
@@ -31,7 +32,7 @@
 
     const [memBuffer, module] = eval([code, '[memBuffer, module]'].join('\n'));
     harness.setInstanceMemoryBuffer(
-      memBuffer
+      instanceMemoryBuffer = memBuffer
     );
     const l = module(
       global,
@@ -40,4 +41,10 @@
     );
     harness.runTest(l);
   }
+
+  process.stdout.write(
+    Buffer.from(
+      new Uint8Array(instanceMemoryBuffer, 0, instanceMemoryBuffer.byteLength)
+    )
+  );
 })();

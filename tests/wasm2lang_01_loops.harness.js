@@ -59,11 +59,6 @@ const moduleImports = {
 
 const runTest = function (exports) {
   exports.emitSegmentsToHost();
-  process.stdout.write(
-    Buffer.from(
-      new Uint8Array(instanceMemoryBuffer, 0, instanceMemoryBuffer.byteLength)
-    )
-  );
 };
 
 module.exports = {
