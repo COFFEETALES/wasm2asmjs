@@ -1,0 +1,79 @@
+'use strict';
+
+const assert = require('assert');
+
+const memoryPageSize = 65536;
+const memoryInitialPages = 8;
+const memoryMaximumPages = 8;
+
+assert.strictEqual(
+  memoryInitialPages === 8,
+  true,
+  'memoryInitialPages must be 16 for this test harness.'
+);
+
+assert.strictEqual(
+  memoryInitialPages === memoryMaximumPages,
+  true,
+  'memoryInitialPages must equal memoryMaximumPages for this test harness.'
+);
+
+const expectedData = [
+  'hello, world.\n',
+  'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n',
+  'Random string data: ~!@#$%^&*()_+`-={}[]|;:"<>,.?/0123456789\n',
+  'segment data 2\n',
+  'segment data 3\n',
+  'X\n',
+  'segment data 4\n'
+];
+
+const offsetList = new Int32Array(expectedData.length);
+{
+  let i = 0;
+  offsetList[0] = i = (i + 1024 + 127) & ~127;
+  for (let j = 1; j < expectedData.length; ++j) {
+    offsetList[+0 + j] = i = (i + expectedData[-1 + j].length + 1 + 127) & ~127;
+  }
+  var heapBase =
+    (i + expectedData[-1 + expectedData.length].length + 1 + 127) & ~127;
+}
+
+let instanceMemoryBuffer = null;
+
+const setInstanceMemoryBuffer = function (typedArray) {
+  instanceMemoryBuffer = typedArray;
+};
+
+const moduleImports = {
+  'hostOnBufferReady': function () {
+    const u8 = new Uint8Array(instanceMemoryBuffer);
+    let arr = [];
+    for (let i = 128; 0 !== u8[i]; ++i) {
+      arr[arr.length] = u8[i];
+    }
+    process.stderr.write(arr.map(i => String.fromCharCode(i)).join(''));
+    process.stdout.write(Buffer.from(arr));
+  }
+};
+
+const runTest = function (exports) {
+  exports.emitSegmentsToHost();
+  process.stdout.write(
+    Buffer.from(
+      new Uint8Array(instanceMemoryBuffer, 0, instanceMemoryBuffer.byteLength)
+    )
+  );
+};
+
+module.exports = {
+  expectedData,
+  heapBase,
+  memoryInitialPages,
+  memoryMaximumPages,
+  memoryPageSize,
+  moduleImports,
+  offsetList,
+  runTest,
+  setInstanceMemoryBuffer
+};

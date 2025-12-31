@@ -35,7 +35,7 @@
       babelTypes.variableDeclaration('var', [
         babelTypes.variableDeclarator(
           babelTypes.identifier(
-            typeof output['code'] === 'string' ? output['code'] : 'asmjs_func'
+            'string' === typeof output['code'] ? output['code'] : 'asmjs_func'
           ),
           resFunc
         )

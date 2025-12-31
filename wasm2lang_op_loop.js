@@ -73,8 +73,9 @@
     expr['nameList'] = [expr.name];
     if (
       true === output['optimizations'] &&
-      1 === parentNode.children.length &&
-      binaryen['BlockId'] === parentNode.id
+      binaryen['BlockId'] === parentNode.id &&
+      parentNode.children &&
+      1 === parentNode.children.length
     ) {
       expr['nameList'][expr['nameList'].length] = parentNode.name;
     }

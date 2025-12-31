@@ -6,6 +6,10 @@
   //  var decodedModule = binaryen.readBinary( dataBuffer );
 
   const GetFileBuffer = rel => {
+    if ('-' === rel) {
+      return fs.readFileSync(0);
+    }
+
     let absFilePath = path.join(process.cwd(), rel);
     assert.strictEqual(
       true,
@@ -17,6 +21,10 @@
   };
 
   const GetFileText = rel => {
+    if ('-' === rel) {
+      return fs.readFileSync(0, {encoding: 'utf8'});
+    }
+
     const absFilePath = path.join(process.cwd(), rel);
     assert.strictEqual(
       true,
@@ -36,17 +44,13 @@
 
   var decodedModule = (function () {
     const p = argv[0];
-    if ('test:' !== p.slice(0, 5)) {
-      if ('wast:' === p.slice(0, 5)) {
-        const textBuffer = GetFileText(p.slice(5));
-        return binaryen.parseText(textBuffer);
-      }
-      //return binaryen.parseText(GetFileText(argv[0]));
-      const dataBuffer = GetFileBuffer(argv[0]);
-      return binaryen.readBinary(dataBuffer);
+    if ('wast:' === p.slice(0, 5)) {
+      const textBuffer = GetFileText(p.slice(5));
+      return binaryen.parseText(textBuffer);
     }
-    RunFile(path.join('tests', p.slice(5)));
-    return ConstructTest();
+    //return binaryen.parseText(GetFileText(argv[0]));
+    const dataBuffer = GetFileBuffer(argv[0]);
+    return binaryen.readBinary(dataBuffer);
   })();
 
   if (binaryen.Features.MVP !== decodedModule.getFeatures()) throw '';
@@ -125,9 +129,9 @@
               'simplify-locals-notee-nostructure',
               'reorder-locals',
               'remove-unused-names',
-              'vacuum',
-              'merge-locals',
-              'coalesce-locals'
+              'vacuum'
+              //'merge-locals',
+              //'coalesce-locals'
             ]);
           }
         }
@@ -157,12 +161,15 @@
 
   if (true === output['wast']) {
     process.stdout.write(decodedModule.emitText());
-    process.stdout.write('\n');
+    process.exit(0);
+  } else if (true === output['wasm']) {
+    const binary = decodedModule.emitBinary();
+    process.stdout.write(Buffer.from(binary.buffer));
     process.exit(0);
   }
 
   var finalizeJs = function (ast, mode) {
-    const res = babelGenerate.generate(ast);
+    const res = babelGenerator.generate(ast);
 
     {
       if (true === output['warnings']['labeledStatement']) {
@@ -181,15 +188,10 @@
     //console.log(JSON.stringify(topLevel, null, 4));
     //console.log(JSON.stringify(res, null, 4));
 
-    if ('function' === typeof CompleteTest) {
-      CompleteTest(res, mode);
-    } else {
-      process.stdout.write(res.code);
-      process.stdout.write('\n');
-    }
+    process.stdout.write(res.code);
   };
 
-  if (false !== output['metadata']) {
+  if (false !== !!output['metadata']) {
     const arr = [...Array(decodedModule.getNumMemorySegments()).keys()]
       .map(i => {
         const segment = decodedModule.getMemorySegmentInfo(String(i));
@@ -249,11 +251,7 @@
       babelTypes.variableDeclarator(
         babelTypes.identifier('i32_array'),
         babelTypes.newExpression(babelTypes.identifier('Int32Array'), [
-          babelTypes.identifier(
-            typeof output['metadata'] === 'string'
-              ? output['metadata']
-              : 'asmjs_memory'
-          )
+          metadataId
         ])
       )
     ]);
@@ -396,9 +394,10 @@
     //const generated = babelGenerate.generate(topLevel, {});
     //console.log(generated.code);
     finalizeJs(topLevel, 'metadata');
-  }
-  if (false === output['code'] && 'undefined' === typeof CompleteTest) {
-    process.exit(0);
+
+    if (true === !!output['code']) {
+      process.stdout.write('\n\n');
+    }
   }
 
   var asmJsConstructVariable = {};

@@ -1,5 +1,5 @@
 on:
-  push:
+  workflow_call:
 
 jobs:
   build:
@@ -8,14 +8,33 @@ jobs:
     container:
       image: node:24-alpine
     steps:
-      - name: Checkout repo
+      - name: "Checkout repo ✅"
         uses: actions/checkout@v4
 
       - name: "Install tools 📦"
         run: |
-          apk update
+          #apk update
           apk add --no-cache nodejs openjdk21-jre yarn
           ls -Al
           find .
           yarn install
+          node --version
           yarn run closure-checks
+          mkdir artifacts_build artifacts_tests
+
+      - name: "Build project 🔧"
+        working-directory: artifacts_build
+        run: |
+          echo "Building project..." # TODO: Replace with actual build commands
+
+      - name: "Build tests 🧪"
+        working-directory: artifacts_tests
+        run: |
+          ../scripts/wasm2lang_build_tests.sh
+
+      - name: "Upload artifacts-tests artifact 🧰"
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-tests
+          path: ./artifacts_tests
+          if-no-files-found: error

@@ -1,22 +1,19 @@
 'use strict';
 
-const assert = require('assert');
-const path = require('path');
-const fs = require('fs');
-
 const defs = {};
 
 const output = {
-  'process': false,
-  'wast': false,
   'code': false,
   'metadata': false,
   'optimizations': ['1', 'on', 'true'].includes(
     (process.env['WASM2LANG_ENABLE_OPTIMIZATIONS'] || '').toLowerCase()
   ),
+  'process': false,
   'warnings': {
     'labeledStatement': false
-  }
+  },
+  'wasm': false,
+  'wast': false
 };
 
 const argv = process.argv.slice(2).filter(str => {
@@ -40,16 +37,17 @@ const argv = process.argv.slice(2).filter(str => {
       return false;
     };
 
-    output['process'] = Boolean(
-      output['process'] || ProcessParameter('--process-wasm')
-    );
-    output['wast'] = Boolean(output['wast'] || ProcessParameter('--emit-wast'));
-
     output['code'] = output['code'] || ProcessParameter('--emit-code');
     output['metadata'] =
       output['metadata'] || ProcessParameter('--emit-metadata');
     output['optimizations'] =
       output['optimizations'] || ProcessParameter('--optimize');
+    output['process'] = Boolean(
+      output['process'] || ProcessParameter('--process-wasm')
+    );
+    output['wasm'] = Boolean(output['wasm'] || ProcessParameter('--emit-wasm'));
+    output['wast'] = Boolean(output['wast'] || ProcessParameter('--emit-wast'));
+
     return false;
   }
   if ('-D' === str.slice(0, 2)) {
@@ -63,8 +61,8 @@ const argv = process.argv.slice(2).filter(str => {
 });
 
 if (
-  true === output['wast'] &&
-  (false !== output['code'] || false !== output['metadata'])
+  [output['wast'], output['wasm']].includes(true) &&
+  (false !== !!output['code'] || false !== !!output['metadata'])
 )
   throw '';
 

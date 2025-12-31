@@ -2,12 +2,13 @@
 
 // https://github.com/mozilla/gecko-dev/blob/master/js/src/wasm/AsmJS.cpp
 // https://github.com/v8/v8/blob/master/src/asmjs/asm-js.cc
-// Firefox 34 is the first version to fully support asm.js (f32 coercion/optimizations).
-// Chrome 61 is the first version to integrate the asm.js validator.
-// Firefox 34: Full asm.js support was shipped.
-// Chrome 61: Asm.js converted to Wasm bytecode.
+// Firefox 34 was the first release with full asm.js support,
+// including f32 coercion and related optimizations.
+// Chrome 61 was the first release to integrate the asm.js validator
+// and compile validated asm.js modules to WebAssembly bytecode.
 
 (async () => {
+  const assert = require('assert');
   const path = require('path');
   const fs = require('fs');
   const vm = require('vm');
@@ -25,17 +26,20 @@
   ).default;
 
   const babelTypes = await import('@babel/types');
-  const babelGenerate = await import('@babel/generator');
+  const babelGenerator = await import('@babel/generator');
 
   const sandbox = {
+    'Buffer': Buffer,
     '__dirname': __dirname,
     '__filename': __filename,
-    'babelGenerate': babelGenerate,
+    'assert': assert,
+    'babelGenerator': babelGenerator,
     'babelTypes': babelTypes,
     'binaryen': binaryen,
     'console': console,
-    'process': process,
-    'require': require
+    'fs': fs,
+    'path': path,
+    'process': process
   };
 
   let ctx = vm.createContext(sandbox);

@@ -1,5 +1,7 @@
-README.*.txt
+/artifacts_build
+/artifacts_tests
 /node_modules
 /package-lock.json
-/yarn.lock
 /temp
+/yarn.lock
+README.*.txt
