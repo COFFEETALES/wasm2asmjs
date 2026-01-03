@@ -1,22 +1,24 @@
 'use strict';
 
-const assert = require('assert');
-
 const memoryPageSize = 65536;
 const memoryInitialPages = 8;
 const memoryMaximumPages = 8;
 
-assert.strictEqual(
-  memoryInitialPages === 8,
-  true,
-  'memoryInitialPages must be 16 for this test harness.'
-);
+if (typeof require === 'function' && typeof module !== 'undefined') {
+  const assert = require('assert');
 
-assert.strictEqual(
-  memoryInitialPages === memoryMaximumPages,
-  true,
-  'memoryInitialPages must equal memoryMaximumPages for this test harness.'
-);
+  assert.strictEqual(
+    memoryInitialPages === 8,
+    true,
+    'memoryInitialPages must be 16 for this test harness.'
+  );
+
+  assert.strictEqual(
+    memoryInitialPages === memoryMaximumPages,
+    true,
+    'memoryInitialPages must equal memoryMaximumPages for this test harness.'
+  );
+}
 
 const expectedData = [
   'hello, world.\n',
@@ -61,7 +63,10 @@ const runTest = function (exports) {
   exports.emitSegmentsToHost();
 };
 
-module.exports = {
+const dumpMemory = true;
+
+export {
+  dumpMemory,
   expectedData,
   heapBase,
   memoryInitialPages,

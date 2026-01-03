@@ -1,7 +1,7 @@
 'use strict';
 
-(async () => {
-  const harness = require('../tests/wasm2lang_01_loops.harness.js');
+(async function () {
+  const harness = await import ('../tests/wasm2lang_01_loops.harness.mjs');
 
   const path = require('path');
   const url = require('url');
@@ -52,7 +52,7 @@
   );
 
   module.addFunction(
-    'updateHeapTopToTheNextAligned',
+    'alignHeapTop',
     /*params*/ binaryen.none,
     /*result*/ binaryen.none,
     [],
@@ -156,7 +156,7 @@
                       module.i32.const(128),
                       module.local.get(2, binaryen.i32)
                     ),
-                    module.i32.const(0xA)
+                    module.i32.const(0xa)
                   ),
                   module.i32.store8(
                     0,
@@ -173,11 +173,14 @@
                   module.i32.store8(
                     0,
                     1,
-                    // get heap top
                     module.global.get('heapTop', binaryen.i32),
-                    module.i32.const(0xA)
+                    module.i32.const(0xa)
                   ),
-                  module.call('updateHeapTopToTheNextAligned', [], binaryen.none),
+                  module.call(
+                    'alignHeapTop',
+                    [],
+                    binaryen.none
+                  ),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('segment_block')
                 ]),
@@ -189,7 +192,11 @@
                   module.i32.const(0)
                 ),
                 module.block(null, [
-                  module.call('updateHeapTopToTheNextAligned', [], binaryen.none),
+                  module.call(
+                    'alignHeapTop',
+                    [],
+                    binaryen.none
+                  ),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('byte_block')
                 ])
