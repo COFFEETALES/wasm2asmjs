@@ -15,17 +15,16 @@ jobs:
         run: |
           #apk update
           apk add --no-cache nodejs openjdk21-jre yarn
-          ls -Al
-          find .
-          yarn install
           node --version
-          yarn run closure-checks
-          mkdir artifacts_build artifacts_tests
+          yarn install
+          mkdir artifacts_build
+          mkdir artifacts_tests
 
       - name: "Build project 🔧"
         working-directory: artifacts_build
         run: |
-          echo "Building project..." # TODO: Replace with actual build commands
+          echo "Building project..."
+          yarn run closure-checks
 
       - name: "Build tests 🧪"
         working-directory: artifacts_tests

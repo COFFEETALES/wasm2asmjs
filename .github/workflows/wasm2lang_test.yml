@@ -16,10 +16,14 @@ jobs:
 
       - name: "Install tools 📦"
         run: |
-          apk add --no-cache nodejs openjdk21-jre php-cli
+          apk add --no-cache \
+            'mozjs~140'      \
+            'nodejs~24'      \
+            openjdk21-jre    \
+            php84-cli
 
       - name: "Run tests 🧩"
         working-directory: artifacts_tests
         run: |
           chmod +x ./wasm2lang_run_tests.sh
-          ./wasm2lang_run_tests.sh
+          SPIDERMONKEY_JS=/usr/bin/js140 ./wasm2lang_run_tests.sh

@@ -21,14 +21,11 @@ if [ ${#0} -ne ${#prefix} ]; then
     export NODE_PATH="${SH_SOURCE}/../node_modules"
 
     rm -f                      \
-     ./wasm2lang_*.asm.js      \
-     ./wasm2lang_*.harness.mjs \
-     ./wasm2lang_*.wasm        \
+     ./wasm2lang_*_*/          \
      ./wasm2lang_*_runner.js   \
      ./wasm2lang_run_tests.sh
 
-    #cp '../tests/wasm2lang_'*'.harness.mjs' .
-    cp '../tests/wasm2lang_v8_wasm_asmjs_runner.js' .
+    cp '../tests/wasm2lang_wasm_asmjs_runner.js' .
     cp '../scripts/wasm2lang_run_tests.sh' .
 
     for file in '../tests/wasm2lang_'*'.build.js'; do
@@ -38,7 +35,6 @@ if [ ${#0} -ne ${#prefix} ]; then
       cp                                      \
        '../tests/'"${filebase}"'.harness.mjs' \
        './'"${filebase}"'/'
-
       #
       # Generate WASM
       node                                        \
@@ -72,7 +68,7 @@ if [ ${#0} -ne ${#prefix} ]; then
         -DASMJS_HEAP_SIZE=$((65536 * 8))          \
         --emit-metadata=memBuffer                 \
         --emit-code=module                        \
-        "${filebase}"/"${filebase}".wasm                        \
+        "${filebase}"/"${filebase}".wasm          \
         1>"${filebase}"/"${filebase}".asm.js
     done
 

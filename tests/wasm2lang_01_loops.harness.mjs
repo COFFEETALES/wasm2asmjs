@@ -4,21 +4,21 @@ const memoryPageSize = 65536;
 const memoryInitialPages = 8;
 const memoryMaximumPages = 8;
 
-if (typeof require === 'function' && typeof module !== 'undefined') {
-  const assert = require('assert');
-
-  assert.strictEqual(
-    memoryInitialPages === 8,
-    true,
-    'memoryInitialPages must be 16 for this test harness.'
-  );
-
-  assert.strictEqual(
-    memoryInitialPages === memoryMaximumPages,
-    true,
-    'memoryInitialPages must equal memoryMaximumPages for this test harness.'
-  );
-}
+//if (typeof require === 'function' && typeof module !== 'undefined') {
+//  const assert = require('assert');
+//
+//  assert.strictEqual(
+//    memoryInitialPages === 8,
+//    true,
+//    'memoryInitialPages must be 16 for this test harness.'
+//  );
+//
+//  assert.strictEqual(
+//    memoryInitialPages === memoryMaximumPages,
+//    true,
+//    'memoryInitialPages must equal memoryMaximumPages for this test harness.'
+//  );
+//}
 
 const expectedData = [
   'hello, world.\n',
@@ -42,10 +42,7 @@ const offsetList = new Int32Array(expectedData.length);
 }
 
 let instanceMemoryBuffer = null;
-
-const setInstanceMemoryBuffer = function (typedArray) {
-  instanceMemoryBuffer = typedArray;
-};
+let stdoutWrite = null;
 
 const moduleImports = {
   'hostOnBufferReady': function () {
@@ -54,12 +51,13 @@ const moduleImports = {
     for (let i = 128; 0 !== u8[i]; ++i) {
       arr[arr.length] = u8[i];
     }
-    process.stderr.write(arr.map(i => String.fromCharCode(i)).join(''));
-    process.stdout.write(Buffer.from(arr));
+    stdoutWrite(arr.map(i => String.fromCharCode(i)).join(''));
   }
 };
 
-const runTest = function (exports) {
+const runTest = function (buff, out, exports) {
+  instanceMemoryBuffer = buff;
+  stdoutWrite = out;
   exports.emitSegmentsToHost();
 };
 
@@ -74,6 +72,5 @@ export {
   memoryPageSize,
   moduleImports,
   offsetList,
-  runTest,
-  setInstanceMemoryBuffer
+  runTest
 };

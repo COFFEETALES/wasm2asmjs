@@ -33,27 +33,6 @@
     /* shared */ false
   );
 
-  // example of alignHeapTop function
-  //module.addFunction(
-  //  'alignHeapTop',
-  //  /*params*/ binaryen.none,
-  //  /*result*/ binaryen.none,
-  //  [],
-  //  module.block(null, [
-  //    module.global.set(
-  //      'heapTop',
-  //      module.i32.and(
-  //        module.i32.add(
-  //          module.global.get('heapTop', binaryen.i32),
-  //          module.i32.const(255)
-  //        ),
-  //        module.i32.const(~255)
-  //      )
-  //    ),
-  //    module.return()
-  //  ])
-  //);
-
   // i32 fibonacci(i32 n) { return (n < 2) ? n : fibonacci(n-1) + fibonacci(n-2); }
   {
     const i32 = binaryen.i32;
@@ -94,5 +73,4 @@
   process.stdout.write(module.emitText());
 
   return module;
-
 })();
