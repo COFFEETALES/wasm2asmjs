@@ -72,7 +72,7 @@
     expr['nested'] = false;
     expr['nameList'] = [expr.name];
     if (
-      true === output['optimizations'] &&
+      true === output['optimize'] &&
       binaryen['BlockId'] === parentNode.id &&
       parentNode.children &&
       1 === parentNode.children.length
@@ -89,7 +89,7 @@
       expr['nameList'][expr['nameList'].length] = blockExpr.name;
 
     let resultLoop = null;
-    $label_1: if (true === output['optimizations']) {
+    $label_1: if (true === output['optimize']) {
       const firstSrc = blockExpr.children[0];
       const firstExpr = binaryen.getExpressionInfo(firstSrc);
 

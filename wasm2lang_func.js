@@ -263,7 +263,7 @@
 
               return asmJsConstructVariable[i](
                 ['$', funcShortname, '_', genStrId(localIdx)].join(''),
-                (true === output['optimizations'] &&
+                (true === output['optimize'] &&
                   (function () {
                     for (let j = 0; j !== c.length; ++j) {
                       const expr = binaryen.getExpressionInfo(c[j]);

@@ -73,7 +73,7 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   const res = [];
 
   if (
-    true === output['optimizations'] &&
+    true === output['optimize'] &&
     0 !== expr.children.length &&
     ![null, ''].includes(expr.name)
   ) {
@@ -183,12 +183,23 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
 };
 
 var visitIfId = function (walker, funcItem, parentNodes, expr) {
+  var fn = function (expr, part) {
+    const node = walker(expr, part);
+    if (Array.isArray(node)) {
+      return babelTypes.blockStatement(node);
+    }
+    if (babelTypes.isStatement(node)) {
+      return node;
+    }
+    //if (babelTypes.isExpression && babelTypes.isExpression(node)) {
+    //  return babelTypes.expressionStatement(node);
+    //}
+  };
+
   return babelTypes.ifStatement(
     walker(expr, expr.condition),
-    babelTypes.blockStatement([].concat(walker(expr, expr.ifTrue)).flat()),
-    0 === expr.ifFalse
-      ? null
-      : babelTypes.blockStatement([].concat(walker(expr, expr.ifFalse)).flat())
+    fn(expr, expr.ifTrue),
+    0 === expr.ifFalse ? null : fn(expr, expr.ifFalse)
   );
 };
 
@@ -428,7 +439,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
   ////
   // OPTIMIZE FOR JS
   if (
-    true === output['optimizations'] &&
+    true === output['optimize'] &&
     (binaryen['SubInt32'] === expr.op || binaryen['AddInt32'] === expr.op)
   ) {
     const right = binaryen.getExpressionInfo(expr.right);
@@ -445,7 +456,7 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
     }
   }
   if (
-    true === output['optimizations'] &&
+    true === output['optimize'] &&
     (binaryen['XorInt32'] === expr.op || binaryen['AndInt32'] === expr.op)
   ) {
     /*
@@ -658,7 +669,7 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
   //+ Unary addition: type conversion to double
   //- Sign inversion: type correction required
   if (binaryen['EqZInt32'] === expr.op) {
-    if (true === output['optimizations']) {
+    if (true === output['optimize']) {
       const exprSrc = createEqz(expr.value);
       const exprObj = binaryen.getExpressionInfo(exprSrc);
       if (

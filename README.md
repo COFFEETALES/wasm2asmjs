@@ -98,7 +98,7 @@ $> npm install
 ``` bash
 $> node wasm2lang.js              \
  --optimize                       \
- --process-wasm                   \
+ --normalize-wasm=2               \
  --language_out=ASMJS             \
  -DASMJS_HEAP_SIZE=$((65536 * 8)) \
  --emit-metadata=memBuf           \

@@ -25,8 +25,8 @@ print( simplify_logic( my_op, None, True, False ) )
 
     assert.strictEqual(
       true,
-      output['optimizations'],
-      'true === output["optimizations"]'
+      output['optimize'],
+      'true === output["optimize"]'
     );
     return (
       (function x(ptr, eqz) {

@@ -3,6 +3,7 @@
 
 set -e
 
+
 prefix="${0%'.sh'}"
 if [ ${#0} -ne ${#prefix} ]; then
   SH_SOURCE="$(cd "$(dirname "$0")" ; pwd -P)"
@@ -19,6 +20,8 @@ if [ ${#0} -ne ${#prefix} ]; then
 
     echo "Building tests..."
     export NODE_PATH="${SH_SOURCE}/../node_modules"
+
+    export WASM2LANG_OPTIMIZE_OUTPUT=on
 
     rm -f                      \
      ./wasm2lang_*_*/          \
@@ -42,8 +45,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       |                                           \
       node                                        \
         "../wasm2lang.js"                         \
-        --optimize                                \
-        --process-wasm                            \
+        --normalize-wasm=0                        \
         --emit-wasm                               \
         wast:-                                    \
         1>"${filebase}"/"${filebase}".wasm
@@ -54,8 +56,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       |                                           \
       node                                        \
         "../wasm2lang.js"                         \
-        --optimize                                \
-        --process-wasm                            \
+        --normalize-wasm=0                        \
         --emit-wast                               \
         wast:-                                    \
         1>"${filebase}"/"${filebase}".wast
@@ -63,6 +64,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       # Generate ASMJS
       node                                        \
         "../wasm2lang.js"                         \
+        --normalize-wasm=0                        \
         --optimize                                \
         --language_out=ASMJS                      \
         -DASMJS_HEAP_SIZE=$((65536 * 8))          \

@@ -5,10 +5,12 @@ const defs = {};
 const output = {
   'code': false,
   'metadata': false,
-  'optimizations': ['1', 'on', 'true'].includes(
-    (process.env['WASM2LANG_ENABLE_OPTIMIZATIONS'] || '').toLowerCase()
+  'optimize': ['1', 'on', 'true'].includes(
+    (process.env['WASM2LANG_OPTIMIZE_OUTPUT'] || '').toLowerCase()
   ),
-  'process': false,
+  'normalize': (
+    (process.env['WASM2LANG_NORMALIZE_WASM'] || 0)
+  ),
   'warnings': {
     'labeledStatement': false
   },
@@ -40,10 +42,10 @@ const argv = process.argv.slice(2).filter(str => {
     output['code'] = output['code'] || ProcessParameter('--emit-code');
     output['metadata'] =
       output['metadata'] || ProcessParameter('--emit-metadata');
-    output['optimizations'] =
-      output['optimizations'] || ProcessParameter('--optimize');
-    output['process'] = Boolean(
-      output['process'] || ProcessParameter('--process-wasm')
+    output['optimize'] =
+      output['optimize'] || ProcessParameter('--optimize-output');
+    output['normalize'] = Number(
+      output['normalize'] || ProcessParameter('--normalize-wasm')
     );
     output['wasm'] = Boolean(output['wasm'] || ProcessParameter('--emit-wasm'));
     output['wast'] = Boolean(output['wast'] || ProcessParameter('--emit-wast'));

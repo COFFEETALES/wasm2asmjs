@@ -34,7 +34,7 @@
     return fs.readFileSync(absFilePath, {encoding: 'utf8'});
   };
 
-  if (true === output['optimizations']) {
+  if (2 >= output['normalize']) {
     binaryen.setOptimizeLevel(4);
     binaryen.setShrinkLevel(2);
   } else {
@@ -55,9 +55,17 @@
 
   if (binaryen.Features.MVP !== decodedModule.getFeatures()) throw '';
 
-  if (true === output['process']) {
-    // Below based on https://github.com/WebAssembly/binaryen/blob/master/src/wasm2js.h occurrence of processWasm » runner
-    const passList = [];
+  // Below based on https://github.com/WebAssembly/binaryen/blob/master/src/wasm2js.h occurrence of processWasm » runner
+  const passList = [];
+
+  if (0 === output['normalize']) {
+      passList[passList.length] = 'flatten';
+      passList[passList.length] = 'simplify-locals-notee-nostructure';
+      passList[passList.length] = 'reorder-locals';
+      passList[passList.length] = 'vacuum';
+  }
+
+  if (0 !== output['normalize']) {
     {
       passList[passList.length] = 'legalize-js-interface';
       if (binaryen.getOptimizeLevel() > 0) {
@@ -106,18 +114,20 @@
       passList[passList.length] = 'remove-unused-module-elements';
       passList[passList.length] = 'dce';
     }
+  }
 
-    {
-      const sep = passList.indexOf('default-optimization-passes');
-      if (-1 === sep) {
-        decodedModule.runPasses(passList);
-      } else {
-        decodedModule.runPasses(passList.slice(0, sep));
-        decodedModule.optimize();
-        decodedModule.runPasses(passList.slice(sep + 1));
-      }
+  {
+    const sep = passList.indexOf('default-optimization-passes');
+    if (-1 === sep) {
+      decodedModule.runPasses(passList);
+    } else {
+      decodedModule.runPasses(passList.slice(0, sep));
+      decodedModule.optimize();
+      decodedModule.runPasses(passList.slice(sep + 1));
     }
+  }
 
+  if (0 !== output['normalize']) {
     const arr = [...Array(decodedModule.getNumFunctions()).keys()].map(
       i => {
         const funcPtr = decodedModule.getFunctionByIndex(i);

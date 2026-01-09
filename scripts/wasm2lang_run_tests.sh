@@ -26,9 +26,9 @@ if [ ${#0} -ne ${#prefix} ]; then
       dirname="$(basename "$directory")"
       filebase="${dirname}"'/'"${dirname}"
       echo "----------------------------------------"
-      echo -e "\033[0;33mRunning test: $dirname\033[0m"
+      echo -e "\033[1;34mRunning test: $dirname\033[0m"
       #
-      echo "Running V8 WASM test..."
+      echo -e "\033[0;33mRunning V8 WASM test...\033[0m"
       cat "${filebase}".wasm                  \
       |                                       \
       node                                    \
@@ -38,7 +38,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       |                                       \
       tee "${filebase}".v8.wasm.out
       #
-      echo "Running V8 ASMJS test..."
+      echo -e "\033[0;33mRunning V8 ASMJS test...\033[0m"
       cat "${filebase}".asm.js                \
       |                                       \
       node                                    \
@@ -51,7 +51,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       tee "${filebase}".v8.asmjs.out
       #
       if [ -x "${SPIDERMONKEY_JS}" ]; then
-        echo "Running SpiderMonkey ASMJS test..."
+        echo -e "\033[0;33mRunning SpiderMonkey ASMJS test...\033[0m"
         cat "${filebase}".asm.js                \
         |                                       \
         "${SPIDERMONKEY_JS}"                    \
@@ -61,8 +61,6 @@ if [ ${#0} -ne ${#prefix} ]; then
           --asmjs=1                             \
         |                                       \
         tee "${filebase}".sm.asmjs.out
-        [ $? -eq 0 ] || tmpretcode=1
-        echo $tmpretcode
         dos2unix "${filebase}".sm.asmjs.out
       fi
       #
