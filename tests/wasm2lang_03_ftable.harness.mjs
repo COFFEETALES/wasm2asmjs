@@ -13,7 +13,9 @@ const runTest = function (buff, out, exports) {
   instanceMemoryBuffer = buff;
   stdoutWrite = out;
   stdoutWrite(exports['callTableIndex2']() + '\n');
-  // exports['fibonacci'](46) -> i32 limit
+  stdoutWrite(exports['callTableIndex5']() + '\n');
+  stdoutWrite(exports['callTableIndex9']() + '\n');
+  stdoutWrite(exports['callTableIndex10']() + '\n');
 };
 
 const heapBase = 128;

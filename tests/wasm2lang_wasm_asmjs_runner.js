@@ -51,15 +51,6 @@ const wasm = !!obj['wasm'];
 
   let instanceMemoryBuffer = null;
 
-  //process.on('uncaughtException', err => {
-  //  console.error(['uncaughtException: ', err && err.stack ? err.stack : err].join(''));
-  //  process.exitCode = 1;
-  //});
-  //process.on('unhandledRejection', reason => {
-  //  console.error(['unhandledRejection: ', reason].join(''));
-  //  process.exitCode = 1;
-  //});
-
   if (wasm) {
     let bin = null;
     if (isNode) {
@@ -108,6 +99,8 @@ const wasm = !!obj['wasm'];
   }
 
   if (harness.dumpMemory) {
+    const bytes = new Uint8Array(instanceMemoryBuffer);
+    /*
     const lookupTable = (function buildCRC32LookupTable(polynomial) {
       const table = [];
       for (let n = 0; n != 256; ++n) {
@@ -127,7 +120,6 @@ const wasm = !!obj['wasm'];
     // $ echo "import binascii; print(hex(binascii.crc32(b'HELLO WORLD')));" | python
     //const bytes = (new TextEncoder()).encode('HELLO WORLD');
 
-    const bytes = new Uint8Array(instanceMemoryBuffer);
     let crc = 0xffffffff;
     for (const byte of bytes) {
       const tableIndex = (crc ^ byte) & 0xff;
@@ -136,11 +128,32 @@ const wasm = !!obj['wasm'];
         throw new Error('tableIndex out of range 0-255');
       crc = (crc >>> 8) ^ tableVal;
     }
+    */
 
+    let crc32 = function (bytes) {
+      let crc = 0xffffffff;
+
+      for (let i = 0; i !== bytes.byteLength; ++i) {
+        let ch = bytes[i] & 0xff;
+
+        for (let j = 0; j !== 8; ++j) {
+          const b = (ch ^ crc) & 1;
+          crc >>>= 1;
+          if (b) crc ^= 0xedb88320;
+          ch >>= 1;
+        }
+      }
+
+      return ~crc >>> 0; // unsigned 32-bit result
+    };
+
+    //stdoutWrite(
+    //  'Memory CRC32: 0x' +
+    //    ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, '0') +
+    //    '\n'
+    //);
     stdoutWrite(
-      'Memory CRC32: 0x' +
-        ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, '0') +
-        '\n'
+      'Memory CRC32: 0x' + crc32(bytes).toString(16).padStart(8, '0') + '\n'
     );
   }
 })();

@@ -4,22 +4,6 @@ const memoryPageSize = 65536;
 const memoryInitialPages = 8;
 const memoryMaximumPages = 8;
 
-//if (typeof require === 'function' && typeof module !== 'undefined') {
-//  const assert = require('assert');
-//
-//  assert.strictEqual(
-//    memoryInitialPages === 8,
-//    true,
-//    'memoryInitialPages must be 16 for this test harness.'
-//  );
-//
-//  assert.strictEqual(
-//    memoryInitialPages === memoryMaximumPages,
-//    true,
-//    'memoryInitialPages must equal memoryMaximumPages for this test harness.'
-//  );
-//}
-
 const expectedData = [
   'hello, world.\n',
   'QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\n',
