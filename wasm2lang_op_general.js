@@ -145,7 +145,11 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
         }
         if (0 === b.length) return children;
       }
-      return decodedModule.block(blockName, children, blockType);
+      return decodedModule.block(
+        blockName,
+        children.filter(item => void 0 !== item),
+        blockType
+      );
     })(expr.type, expr.name, expr.children);
     if (Array.isArray(normalizedBlock)) {
       Array.prototype.splice.apply(
@@ -165,8 +169,8 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
     res,
     [0, 0].concat(
       expr.children
-        .flatMap(item => walker(expr, item))
         .filter(item => void 0 !== item)
+        .flatMap(item => walker(expr, item))
       // ^ some children (like LoadId) can return «undef»
     )
   );

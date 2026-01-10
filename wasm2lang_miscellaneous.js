@@ -166,7 +166,7 @@ print( simplify_logic( my_op, None, True, False ) )
 
     return expressionList
       .map(function x(ptr) {
-        if (0 === ptr) return;
+        if ([0, void 0].includes(ptr)) return;
         const expr = binaryen.getExpressionInfo(ptr);
         if (binaryen['LoopId'] === expr.id || binaryen['BlockId'] === expr.id) {
           let res;
