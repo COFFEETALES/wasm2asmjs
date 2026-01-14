@@ -5,8 +5,8 @@ const defs = {};
 const output = {
   'code': false,
   'metadata': false,
-  'optimize': ['1', 'on', 'true'].includes(
-    (process.env['WASM2LANG_OPTIMIZE_OUTPUT'] || '').toLowerCase()
+  'simplify': ['1', 'on', 'true'].includes(
+    (process.env['WASM2LANG_SIMPLIFY_OUTPUT'] || '').toLowerCase()
   ),
   'normalize': (
     (process.env['WASM2LANG_NORMALIZE_WASM'] || 0)
@@ -42,8 +42,8 @@ const argv = process.argv.slice(2).filter(str => {
     output['code'] = output['code'] || ProcessParameter('--emit-code');
     output['metadata'] =
       output['metadata'] || ProcessParameter('--emit-metadata');
-    output['optimize'] =
-      output['optimize'] || ProcessParameter('--optimize-output');
+    output['simplify'] =
+      output['simplify'] || ProcessParameter('--simplify-output');
     output['normalize'] = Number(
       output['normalize'] || ProcessParameter('--normalize-wasm')
     );

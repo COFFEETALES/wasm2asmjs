@@ -409,6 +409,9 @@
       process.stdout.write('\n\n');
     }
   }
+  if (false === !!output['code']) {
+    process.exit(0);
+  }
 
   var asmJsConstructVariable = {};
 

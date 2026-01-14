@@ -178,7 +178,10 @@
       {
         const funcBody = binaryen.getExpressionInfo(funcInfo['body']);
         let c = [];
-        if (binaryen['BlockId'] === funcBody.id && [null, ''].includes(funcBody.name)) {
+        if (
+          binaryen['BlockId'] === funcBody.id &&
+          [null, ''].includes(funcBody.name)
+        ) {
           //if ( '' !== funcBody['name'] )
           //{ throw 'binaryen[\'BlockId\'] === funcBody.id && \'\' !== funcBody.name'; }
 
@@ -261,42 +264,36 @@
                 return 0;
               };
 
+              let varValue = void 0;
+              /*
+              for (let j = 0; j !== c.length; ++j) {
+                const expr = binaryen.getExpressionInfo(c[j]);
+                if (binaryen['LocalSetId'] === expr['id']) {
+                  if (localIdx === expr['index']) {
+                    const v = binaryen.getExpressionInfo(expr['value']);
+                    if (binaryen['ConstId'] === v['id']) {
+                      c.splice(j, 1);
+                      varValue = v['value'];
+                    }
+                    break;
+                  }
+                }
+                if (
+                  binaryen['LocalSetId'] === expr['id'] ||
+                  binaryen['GlobalSetId'] === expr['id']
+                ) {
+                  if (0 !== walker(expr['value'])) continue;
+                } else if (binaryen['LoopId'] === expr['id']) {
+                  if (0 !== walker(expr['body'])) continue;
+                }
+                break;
+              }
+              */
+              // TODO: Optimize variable initializations better.
+
               return asmJsConstructVariable[i](
                 ['$', funcShortname, '_', genStrId(localIdx)].join(''),
-                (true === output['optimize'] &&
-                  (function () {
-                    for (let j = 0; j !== c.length; ++j) {
-                      const expr = binaryen.getExpressionInfo(c[j]);
-                      if (binaryen['LocalSetId'] === expr['id']) {
-                        if (localIdx === expr['index']) {
-                          const v = binaryen.getExpressionInfo(expr['value']);
-                          if (binaryen['ConstId'] === v['id']) {
-                            c.splice(j, 1);
-                            /*
-                            if ( binaryen['i32'] !== i ) {
-                              return (
-                                Math.floor(v['value']) === v['value'] ?
-                                  v['value'].toFixed(1) : v['value'].toString(10)
-                              );
-                            }
-                            */
-                            return v['value'];
-                          }
-                          return;
-                        }
-                      }
-                      if (
-                        binaryen['LocalSetId'] === expr['id'] ||
-                        binaryen['GlobalSetId'] === expr['id']
-                      ) {
-                        if (0 !== walker(expr['value'])) continue;
-                      } else if (binaryen['LoopId'] === expr['id']) {
-                        if (0 !== walker(expr['body'])) continue;
-                      }
-                      return;
-                    }
-                  })()) ||
-                  void 0
+                varValue
               );
             })
           ]);

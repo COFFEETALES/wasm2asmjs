@@ -72,106 +72,45 @@ var visitBlockId = function (walker, funcItem, parentNodes, expr) {
   const header = [];
   const res = [];
 
-  if (
-    true === output['optimize'] &&
-    0 !== expr.children.length &&
-    ![null, ''].includes(expr.name)
-  ) {
-    // Extract a "prologue" of leading assignments from the start of the block:
-    // - While the first child is a GlobalSet/LocalSet, move it into 'header'.
-    // - If the first child is a nested Block, recurse into that block first (so we can
-    //   extract its own prologue), then rebuild/replace the Block expression in-place.
-    //
-    // Notes:
-    // - This mutates the 'children' array in-place (it is 'expr.children').
-    // - 'header' is appended with the JS statements produced by 'walker(...)'.
-    (function extractLeadingSetStatements(children) {
-      while (0 !== children.length) {
-        const firstExpr = binaryen.getExpressionInfo(children[0]);
-        if (
-          binaryen['GlobalSetId'] === firstExpr.id ||
-          binaryen['LocalSetId'] === firstExpr.id
-        ) {
-          header[header.length] = walker(expr, children.shift());
-          continue;
-        } else if (binaryen['BlockId'] === firstExpr.id) {
-          extractLeadingSetStatements(firstExpr.children);
-          children.splice(
-            0,
-            1,
-            decodedModule.block(
-              firstExpr.name,
-              firstExpr.children,
-              firstExpr.type
-            )
-          );
-        }
-        break;
+  // Extract a "prologue" of leading assignments from the start of the block:
+  // - While the first child is a GlobalSet/LocalSet, move it into 'header'.
+  // - If the first child is a nested Block, recurse into that block first (so we can
+  //   extract its own prologue), then rebuild/replace the Block expression in-place.
+  //
+  // Notes:
+  // - This mutates the 'children' array in-place (it is 'expr.children').
+  // - 'header' is appended with the JS statements produced by 'walker(...)'.
+  (function extractLeadingSetStatements(children) {
+    while (0 !== children.length) {
+      const firstExpr = binaryen.getExpressionInfo(children[0]);
+      if (
+        binaryen['GlobalSetId'] === firstExpr.id ||
+        binaryen['LocalSetId'] === firstExpr.id
+      ) {
+        header[header.length] = walker(expr, children.shift());
+        continue;
+      } else if (binaryen['BlockId'] === firstExpr.id) {
+        extractLeadingSetStatements(firstExpr.children);
+        children.splice(
+          0,
+          1,
+          decodedModule.block(
+            firstExpr.name,
+            firstExpr.children,
+            firstExpr.type
+          )
+        );
       }
-    })(expr.children);
-    //header = header.filter( (item) => void 0 !== item );
-
-    // blockOptimizer is defined to optimize patterns
-    const normalizedBlock = (function normalizeLabeledBlock(
-      blockType,
-      blockName,
-      children
-    ) {
-      if ([null, ''].includes(blockName)) {
-        return children;
-      }
-      for (let i = children.length - 1; i !== -1; --i) {
-        const currExpr = binaryen.getExpressionInfo(children[i]);
-        if (binaryen['BlockId'] === currExpr.id) {
-          const retVal = normalizeLabeledBlock(
-            currExpr.type,
-            currExpr.name,
-            currExpr.children
-          );
-          Array.prototype.splice.apply(children, [i, 1].concat(retVal));
-        }
-        if (1 === children.length) {
-          if (binaryen['LoopId'] === currExpr.id) {
-            return [currExpr.srcPtr];
-          }
-        }
-      }
-      {
-        let b = findNonLocalBreaks(children).filter(i => blockName === i.name);
-
-        for (let i = b.length - 1; i !== -1; --i) {
-          const curr = b[i];
-          if (curr['stack'].some(i => binaryen['LoopId'] === i['id'])) continue;
-        }
-        if (0 === b.length) return children;
-      }
-      return decodedModule.block(
-        blockName,
-        children.filter(item => void 0 !== item),
-        blockType
-      );
-    })(expr.type, expr.name, expr.children);
-    if (Array.isArray(normalizedBlock)) {
-      Array.prototype.splice.apply(
-        res,
-        [0, 0].concat(
-          expr.children
-            .flatMap(item => walker(expr, item))
-            .filter(item => void 0 !== item)
-          // ^ some children (like LoadId) can return «undef»
-        )
-      );
-      return header.concat(res);
+      break;
     }
-  }
+  })(expr.children);
 
   Array.prototype.splice.apply(
     res,
     [0, 0].concat(
       expr.children
-        .filter(item => void 0 !== item)
         .flatMap(item => walker(expr, item))
-      // ^ some children (like LoadId) can return «undef»
+        .filter(item => void 0 !== item)
     )
   );
 
@@ -440,45 +379,6 @@ var visitBinaryId = function (walker, funcItem, parentNodes, expr, alignType) {
     );
   }
 
-  ////
-  // OPTIMIZE FOR JS
-  if (
-    true === output['optimize'] &&
-    (binaryen['SubInt32'] === expr.op || binaryen['AddInt32'] === expr.op)
-  ) {
-    const right = binaryen.getExpressionInfo(expr.right);
-    if (
-      binaryen['ConstId'] === right.id &&
-      binaryen['i32'] === right.type &&
-      right.value < 0
-    ) {
-      expr.op =
-        binaryen['SubInt32'] === expr.op
-          ? binaryen['AddInt32']
-          : binaryen['SubInt32'];
-      expr.right = decodedModule.i32.const(-1 * right.value);
-    }
-  }
-  if (
-    true === output['optimize'] &&
-    (binaryen['XorInt32'] === expr.op || binaryen['AndInt32'] === expr.op)
-  ) {
-    /*
-    const right = binaryen.getExpressionInfo(expr.right);
-    if ( binaryen['ConstId'] === right.id &&
-      binaryen['i32'] === right.type &&
-      1 === right.value )
-    {
-      const left = binaryen.getExpressionInfo(expr.left);
-      if ( binaryen['BinaryId'] === left.id && true === cmpOperators[left.op] )
-      {
-      }
-    }
-    */
-  }
-  //
-  ////
-
   if (void 0 === op[expr.op])
     throw ['BinaryId: opcode not implemented. ', expr.op].join('');
 
@@ -673,18 +573,6 @@ var visitUnaryId = function (walker, funcItem, parentNodes, expr) {
   //+ Unary addition: type conversion to double
   //- Sign inversion: type correction required
   if (binaryen['EqZInt32'] === expr.op) {
-    if (true === output['optimize']) {
-      const exprSrc = createEqz(expr.value);
-      const exprObj = binaryen.getExpressionInfo(exprSrc);
-      if (
-        !(
-          binaryen['UnaryId'] === exprObj.id &&
-          binaryen['EqZInt32'] === exprObj.op
-        )
-      ) {
-        return walker(expr, exprSrc);
-      }
-    }
     const node = walker(expr, expr.value);
     return babelTypes.unaryExpression('!', node, true);
   }
