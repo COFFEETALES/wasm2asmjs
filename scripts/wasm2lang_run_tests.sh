@@ -6,7 +6,7 @@ set +e
 prefix="${0%'.sh'}"
 if [ ${#0} -ne ${#prefix} ]; then
   SH_SOURCE="$(cd "$(dirname "$0")" ; pwd -P)"
-  EXPECTED_CWD="$(cd "$SH_SOURCE/../artifacts_tests" && pwd -P)"
+  EXPECTED_CWD="$(cd "$SH_SOURCE/../test_artifacts" && pwd -P)"
   ACTUAL_CWD="$(pwd -P)"
 
   fn() {
@@ -33,8 +33,8 @@ if [ ${#0} -ne ${#prefix} ]; then
       |                                       \
       node                                    \
         "./wasm2lang_wasm_asmjs_runner.js"    \
-        --test-name="$filebase"               \
-        --wasm=1                              \
+        --test-name "$filebase"               \
+        --wasm                                \
       |                                       \
       tee "${filebase}".v8.wasm.out
       #
@@ -44,8 +44,8 @@ if [ ${#0} -ne ${#prefix} ]; then
       node                                    \
         --trace-warnings                      \
         "./wasm2lang_wasm_asmjs_runner.js"    \
-        --test-name="$filebase"               \
-        --asmjs=1                             \
+        --test-name "$filebase"               \
+        --asmjs                               \
         2>&1                                  \
       |                                       \
       tee "${filebase}".v8.asmjs.out
@@ -57,8 +57,8 @@ if [ ${#0} -ne ${#prefix} ]; then
         "${SPIDERMONKEY_JS}"                    \
           --warnings                            \
           "./wasm2lang_wasm_asmjs_runner.js"    \
-          --test-name="$filebase"               \
-          --asmjs=1                             \
+          --test-name "$filebase"               \
+          --asmjs                               \
         |                                       \
         tee "${filebase}".sm.asmjs.out
         dos2unix "${filebase}".sm.asmjs.out

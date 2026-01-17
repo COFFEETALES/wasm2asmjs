@@ -54,14 +54,14 @@
 
   sandbox['RunFile'] = RunFile;
 
-  RunFile('wasm2lang_header.js');
-  RunFile('wasm2lang_basex.js');
-  RunFile('wasm2lang_decoder.js');
-  RunFile('wasm2lang_miscellaneous.js');
-  RunFile('wasm2lang_op_general.js');
-  RunFile('wasm2lang_op_heap.js');
-  RunFile('wasm2lang_op_loop.js');
-  RunFile('wasm2lang_func.js');
-  RunFile('wasm2lang_link.js');
-  RunFile('wasm2lang_void0.js');
+  RunFile('alpha/wasm2lang_header.js');
+  RunFile('alpha/wasm2lang_basex.js');
+  RunFile('alpha/wasm2lang_decoder.js');
+  RunFile('alpha/wasm2lang_miscellaneous.js');
+  RunFile('alpha/wasm2lang_op_general.js');
+  RunFile('alpha/wasm2lang_op_heap.js');
+  RunFile('alpha/wasm2lang_op_loop.js');
+  RunFile('alpha/wasm2lang_func.js');
+  RunFile('alpha/wasm2lang_link.js');
+  RunFile('alpha/wasm2lang_void0.js');
 })();

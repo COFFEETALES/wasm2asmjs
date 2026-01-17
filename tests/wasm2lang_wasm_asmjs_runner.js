@@ -14,32 +14,21 @@ if (!isNode && !isSpiderMonkey) {
   throw new Error('Unsupported runtime environment.');
 }
 
-const obj = {'test-name': '', asmjs: false, wasm: false};
+const obj = {'test-name': '', 'asmjs': false, 'wasm': false};
 
-const argv = (isNode ? process.argv.slice(2) : scriptArgs).filter(str => {
-  let i = 0;
-  const list = ['asmjs', 'test-name', 'wasm'];
-  do {
-    const paramName = list[i];
-    if (undefined === paramName) {
-      console.error(['unrecognized parameter: ', str].join(''));
-      continue;
+var /** string */ pendingOptionName = '';
+(isNode ? process.argv.slice(2) : scriptArgs).forEach(currentArg => {
+  if ('--' === currentArg.substring(0, 2)) {
+    if (2 === currentArg.length) {
+      return;
     }
-    if (
-      str.slice(0, 2 + paramName.length).toLowerCase() ===
-      ['--', paramName].join('')
-    ) {
-      if (
-        '=' === str.charAt(2 + paramName.length) ||
-        ':' === str.charAt(2 + paramName.length)
-      ) {
-        const res = str.slice(paramName.length + 3);
-        obj[paramName] = res;
-        return false;
-      }
-    }
-  } while (++i !== list.length);
-  return true;
+    pendingOptionName = '';
+    obj[currentArg.slice(2)] = true;
+    pendingOptionName = currentArg;
+  } else if ('' !== pendingOptionName) {
+    obj[pendingOptionName.slice(2)] = currentArg;
+    pendingOptionName = '';
+  }
 });
 
 const asmjs = !!obj['asmjs'];

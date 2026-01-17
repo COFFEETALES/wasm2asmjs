@@ -5,9 +5,9 @@
     if (0 !== expr.value) throw 'BreakId: 0 !== expr.value';
     if ([null, ''].includes(expr.name)) throw "BreakId: '' === expr.name";
 
-    if ('__WASM2LANG_INTERNAL_BREAK__' === expr.name) {
-      return babelTypes.breakStatement();
-    }
+    //if ('__WASM2LANG_INTERNAL_BREAK__' === expr.name) {
+    //  return babelTypes.breakStatement();
+    //}
 
     const dest = (function () {
       const arr = parentNodes.slice().reverse();

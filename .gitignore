@@ -1,5 +1,5 @@
-/artifacts_build
-/artifacts_tests
+/dist_artifacts
+/test_artifacts
 /node_modules
 /package-lock.json
 /temp

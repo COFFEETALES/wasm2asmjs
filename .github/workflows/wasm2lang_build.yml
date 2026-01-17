@@ -17,17 +17,18 @@ jobs:
           apk add --no-cache nodejs openjdk21-jre yarn
           node --version
           yarn install
-          mkdir artifacts_build
-          mkdir artifacts_tests
+          mkdir dist_artifacts
+          mkdir test_artifacts
 
       - name: "Build project 🔧"
-        working-directory: artifacts_build
+        working-directory: dist_artifacts
         run: |
           echo "Building project..."
-          yarn run closure-checks
+          yarn run closure-make
+          node -e 'require("./dist_artifacts/wasm2lang.js").runCliEntryPoint()' - --hello --world abc
 
       - name: "Build tests 🧪"
-        working-directory: artifacts_tests
+        working-directory: test_artifacts
         run: |
           ../scripts/wasm2lang_build_tests.sh
 
@@ -35,5 +36,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-tests
-          path: ./artifacts_tests
+          path: ./test_artifacts
           if-no-files-found: error

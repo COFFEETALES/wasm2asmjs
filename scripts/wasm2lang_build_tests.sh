@@ -7,7 +7,7 @@ set -e
 prefix="${0%'.sh'}"
 if [ ${#0} -ne ${#prefix} ]; then
   SH_SOURCE="$(cd "$(dirname "$0")" ; pwd -P)"
-  EXPECTED_CWD="$(cd "$SH_SOURCE/../artifacts_tests" && pwd -P)"
+  EXPECTED_CWD="$(cd "$SH_SOURCE/../test_artifacts" && pwd -P)"
   ACTUAL_CWD="$(pwd -P)"
 
   fn() {
@@ -65,7 +65,7 @@ if [ ${#0} -ne ${#prefix} ]; then
       node                                        \
         "../wasm2lang.js"                         \
         --normalize-wasm=0                        \
-        --optimize                                \
+        --simplify-output                         \
         --language_out=ASMJS                      \
         -DASMJS_HEAP_SIZE=$((65536 * 8))          \
         --emit-metadata=memBuffer                 \
