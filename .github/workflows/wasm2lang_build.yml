@@ -23,9 +23,10 @@ jobs:
       - name: "Build project 🔧"
         working-directory: dist_artifacts
         run: |
-          echo "Building project..."
+          echo "Building project from $PWD..."
           yarn run closure-make
-          node -e 'require("./dist_artifacts/wasm2lang.js").runCliEntryPoint()' - --hello --world abc
+          find ..
+          node -e 'require("./wasm2lang.js").runCliEntryPoint()' - --hello --world abc
 
       - name: "Build tests 🧪"
         working-directory: test_artifacts
