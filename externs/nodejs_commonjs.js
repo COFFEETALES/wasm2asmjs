@@ -5,13 +5,13 @@
  * @param {string} name
  * @return {?}
  */
-var require = function(name) {};
+var require = function (name) {};
 
 /**
  * @const
  * @interface
  */
-var NodeModule = function() {};
+var NodeModule = function () {};
 
 /** @const {!Object<string, *>} */
 NodeModule.prototype.exports;

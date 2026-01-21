@@ -1,7 +1,7 @@
 'use strict';
 
 (async function () {
-  const harness = await import ('../tests/wasm2lang_02_fibonacci.harness.mjs');
+  const harness = await import('../tests/wasm2lang_02_fibonacci.harness.mjs');
 
   const path = require('path');
   const url = require('url');
@@ -27,8 +27,8 @@
       {
         passive: false,
         offset: module.i32.const(0),
-        data: new Uint8Array([1,2,3])
-      },
+        data: new Uint8Array([1, 2, 3])
+      }
     ],
     /* shared */ false
   );
@@ -44,16 +44,8 @@
       module.i32.lt_s(n, module.i32.const(2)),
       n,
       module.i32.add(
-        module.call(
-          'fibonacci',
-          [module.i32.sub(n, module.i32.const(1))],
-          i32
-        ),
-        module.call(
-          'fibonacci',
-          [module.i32.sub(n, module.i32.const(2))],
-          i32
-        )
+        module.call('fibonacci', [module.i32.sub(n, module.i32.const(1))], i32),
+        module.call('fibonacci', [module.i32.sub(n, module.i32.const(2))], i32)
       )
     );
 

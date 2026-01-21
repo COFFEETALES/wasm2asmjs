@@ -30,11 +30,8 @@ CLI.parseArgv = function () {
     } else if ('' !== pendingOptionName) {
       CLI.parsedOptions[pendingOptionName] = currentArg;
       pendingOptionName = '';
-    }
-    else {
-      throw new Error(
-        ['unrecognized argument: ', currentArg].join('')
-      );
+    } else {
+      throw new Error(['unrecognized argument: ', currentArg].join(''));
     }
   }
   return CLI.parsedOptions;

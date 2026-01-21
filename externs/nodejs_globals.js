@@ -4,22 +4,35 @@
  * @interface
  * @const
  */
-var NodeProcess = function() {};
+var NodeProcess = function () {};
 
-/** @const {!Array<string>} */
+/**
+ * @const {!Array<string>}
+ */
 NodeProcess.prototype.argv;
 
 /**
  * @nosideeffects
  * @return {string}
  */
-NodeProcess.prototype.cwd = function() {};
+NodeProcess.prototype.cwd = function () {};
 
-/** @const {!Object<string, string>} */
+/**
+ * @const {!Object<string, string>}
+ */
 NodeProcess.prototype.env;
 
-/** @type {{node: *}} */
+/**
+ * @type {{node: *}}
+ */
 NodeProcess.prototype.versions;
 
-/** @const {!NodeProcess} */
+/**
+ * @type {!NodeWritableStream}
+ */
+NodeProcess.prototype.stdout;
+
+/**
+ * @const {!NodeProcess}
+ */
 var process;

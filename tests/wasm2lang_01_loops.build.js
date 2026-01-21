@@ -1,7 +1,7 @@
 'use strict';
 
 (async function () {
-  const harness = await import ('../tests/wasm2lang_01_loops.harness.mjs');
+  const harness = await import('../tests/wasm2lang_01_loops.harness.mjs');
 
   const path = require('path');
   const url = require('url');
@@ -176,11 +176,7 @@
                     module.global.get('heapTop', binaryen.i32),
                     module.i32.const(0xa)
                   ),
-                  module.call(
-                    'alignHeapTop',
-                    [],
-                    binaryen.none
-                  ),
+                  module.call('alignHeapTop', [], binaryen.none),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('segment_block')
                 ]),
@@ -192,11 +188,7 @@
                   module.i32.const(0)
                 ),
                 module.block(null, [
-                  module.call(
-                    'alignHeapTop',
-                    [],
-                    binaryen.none
-                  ),
+                  module.call('alignHeapTop', [], binaryen.none),
                   module.call('hostOnBufferReady', [], binaryen.none),
                   module.break('byte_block')
                 ])

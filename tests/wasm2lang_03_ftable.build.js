@@ -96,10 +96,7 @@
           module.f64.promote(module.local.get(1, binaryen.f32))
         )
       ),
-      module.i32.shl(
-        module.local.get(2, binaryen.i32),
-        module.i32.const(8)
-      )
+      module.i32.shl(module.local.get(2, binaryen.i32), module.i32.const(8))
     )
   );
 
@@ -113,10 +110,7 @@
         module.local.get(0, binaryen.i32),
         module.local.get(1, binaryen.i32)
       ),
-      module.i32.shl(
-        module.local.get(2, binaryen.i32),
-        module.i32.const(8)
-      )
+      module.i32.shl(module.local.get(2, binaryen.i32), module.i32.const(8))
     )
   );
 
