@@ -14,7 +14,10 @@ if (!isNode && !isSpiderMonkey) {
   throw new Error('Unsupported runtime environment.');
 }
 
-const obj = {'test-name': '', 'asmjs': false, 'wasm': false};
+const obj = Object.create(null);
+obj['test-name'] = '';
+obj['asmjs'] = false;
+obj['wasm'] = false;
 
 var /** string */ pendingOptionName = '';
 (isNode ? process.argv.slice(2) : scriptArgs).forEach(currentArg => {

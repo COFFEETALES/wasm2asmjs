@@ -5,8 +5,8 @@
   var fs = await import('fs');
 
   var moduleSpecs = [
-    {'sourcePath': 'src/cli/wasm2lang-cli.js', 'exportName': 'CLI'},
-    {'sourcePath': 'src/options/schema.js', 'exportName': 'Options'},
+    {'sourcePath': 'src/cli/cli.js', 'exportName': 'Wasm2LangCLI'},
+    {'sourcePath': 'src/options/schema.js', 'exportName': 'Wasm2LangSchema'},
     {'sourcePath': 'src/index.js'}
   ];
   for (var i = 0, specCount = moduleSpecs.length; i !== specCount; ++i) {

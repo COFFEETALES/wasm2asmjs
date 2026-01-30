@@ -1,49 +1,55 @@
 'use strict';
 
-/**
- * @namespace
- */
+/** @const */
 var Wasm2Lang = {};
 
 /** @return {boolean} */
 Wasm2Lang.isWorker = function () {
-  return 'function' === typeof importScripts;
+  return Boolean('function' === typeof importScripts);
 };
 
 /** @return {boolean} */
 Wasm2Lang.isBrowser = function () {
-  return !Wasm2Lang.isWorker() && 'object' === typeof window;
+  return Boolean(!Wasm2Lang.isWorker() && 'object' === typeof window && window);
 };
 
 /** @return {boolean} */
 Wasm2Lang.isNode = function () {
-  return 'object' === typeof process && 'object' === typeof process.versions && 'string' === typeof process.versions.node;
+  return Boolean(
+    'object' === typeof process &&
+    process &&
+    'object' === typeof process.versions &&
+    process.versions &&
+    'string' === typeof process.versions.node
+  );
 };
 
-/**
- * @return {void}
- */
+/** @return {void} */
 Wasm2Lang.runCliEntryPoint = function () {
-  var params = CLI.parseArgv();
+  var params = Wasm2LangCLI.parseArgv();
 
-  if (params['--help']) {
+  if ('string' === typeof params['--help']) {
     process.stdout.write('Wasm2Lang CLI Help:');
 
-    /** @const {!Array<string>} */
-    var props = Object.getOwnPropertyNames(Options.Schema.OPTION_SCHEMA);
+    /** @const {!Array<!Wasm2LangSchema.OptionKey>} */
+    var props = Object.keys(Wasm2LangSchema.optionSchema);
 
     for (var /** number */ i = 0, /** number */ len = props.length; i < len; ++i) {
-      var /** !Options.Schema.OptionKeys */ key = /** @type {!Options.Schema.OptionKeys} */ (props[i]);
-      var entry = Options.Schema.OPTION_SCHEMA[key];
+      var /** !Wasm2LangSchema.OptionKey */ key = props[i];
+      var entry = Wasm2LangSchema.optionSchema[key];
       var /** string */ description = '';
       if ('string' === typeof entry.optionDesc) {
         description = /** @type {string} */ (entry.optionDesc);
       }
-      process.stdout.write(['\n\n--', key.replace(/([A-Z])/g, '-$1').toLowerCase(), ':\n', description].join(''));
+      process.stdout.write(['\n\n--', key.replace(/(?=[A-Z])/g, '-').toLowerCase(), ':\n', description].join(''));
     }
+
     process.stdout.write('\n');
     return;
   }
+
+  var /** !Wasm2LangSchema.NormalizedOptions */ options = Wasm2LangCLI.processParams(params);
+  console.log('Wasm2Lang options:', options);
 };
 
 main: {
