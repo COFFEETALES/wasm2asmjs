@@ -28,19 +28,16 @@ Wasm2Lang.isNode = function () {
 Wasm2Lang.runCliEntryPoint = function () {
   var params = Wasm2LangCLI.parseArgv();
 
-  if ('string' === typeof params['--help']) {
+  if ('object' === typeof params['--help']) {
     process.stdout.write('Wasm2Lang CLI Help:');
 
     /** @const {!Array<!Wasm2LangSchema.OptionKey>} */
     var props = Object.keys(Wasm2LangSchema.optionSchema);
 
-    for (var /** number */ i = 0, /** number */ len = props.length; i < len; ++i) {
-      var /** !Wasm2LangSchema.OptionKey */ key = props[i];
+    for (var /** number */ i = 0, /** @const {number} */ len = props.length; i < len; ++i) {
+      var /** @const {!Wasm2LangSchema.OptionKey} */ key = props[i];
       var entry = Wasm2LangSchema.optionSchema[key];
-      var /** string */ description = '';
-      if ('string' === typeof entry.optionDesc) {
-        description = /** @type {string} */ (entry.optionDesc);
-      }
+      var /** @const {string} */ description = entry.optionDesc;
       process.stdout.write(['\n\n--', key.replace(/(?=[A-Z])/g, '-').toLowerCase(), ':\n', description].join(''));
     }
 
@@ -48,7 +45,7 @@ Wasm2Lang.runCliEntryPoint = function () {
     return;
   }
 
-  var /** !Wasm2LangSchema.NormalizedOptions */ options = Wasm2LangCLI.processParams(params);
+  var /** @const {!Wasm2LangSchema.NormalizedOptions} */ options = Wasm2LangCLI.processParams(params);
   console.log('Wasm2Lang options:', options);
 };
 

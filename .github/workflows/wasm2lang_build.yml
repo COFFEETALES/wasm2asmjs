@@ -24,7 +24,7 @@ jobs:
         working-directory: dist_artifacts
         run: |
           yarn run closure-make
-          node -e 'require("./wasm2lang.js").runCliEntryPoint()' - --hello --world abc
+          node -e 'require("./wasm2lang.js").runCliEntryPoint()' - --input-file ../sample.wast
 
       - name: "Build tests 🧪"
         working-directory: test_artifacts

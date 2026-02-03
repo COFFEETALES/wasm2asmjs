@@ -37,7 +37,7 @@ var NodeWritableStream = function () {};
  * @param {string|!Buffer} chunk
  * @param {string=} encoding
  * @param {!function(*=)=} cb
- * @return {!boolean}
+ * @return {boolean}
  */
 NodeWritableStream.prototype.write = function (chunk, encoding, cb) {};
 

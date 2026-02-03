@@ -3,7 +3,7 @@
 /**
  * @nosideeffects
  * @param {string} name
- * @return {?}
+ * @return {*}
  */
 var require = function (name) {};
 
