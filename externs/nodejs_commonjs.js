@@ -13,11 +13,17 @@ var require = function (name) {};
  */
 var NodeModule = function () {};
 
-/** @const {!Object<string, *>} */
+/**
+ * @const {!Object<string, *>}
+ */
 NodeModule.prototype.exports;
 
-/** @const {!NodeModule} */
+/**
+ * @const {!NodeModule}
+ */
 var module;
 
-/** @const {!NodeModule} */
+/**
+ * @const {!NodeModule}
+ */
 require.main;

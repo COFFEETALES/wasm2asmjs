@@ -1,10 +1,12 @@
 'use strict';
 
-/** @const */
-var Wasm2LangCLI = {};
+/**
+ * @const
+ */
+Wasm2Lang.CLI.CommandLineParser = {}; 
 
 /** @return {!Object<string, !Array<string>>} */
-Wasm2LangCLI.parseArgv = function () {
+Wasm2Lang.CLI.CommandLineParser.parseArgv = function () {
   var /** @const {number} */ argvCount = process.argv.length;
   var /** @const {!RegExp} */ optionWithValuePattern = /^(--[\w-]+)(?:[=:])(.*?)$/;
   var /** string */ pendingOptionName = '';
@@ -31,8 +33,8 @@ Wasm2LangCLI.parseArgv = function () {
       parsedParams[pendingOptionName].push(currentArg);
       pendingOptionName = '';
     } else {
-      if ('object' !== typeof parsedParams['--input-data']) {
-        parsedParams['--input-data'] = [currentArg];
+      if ('object' !== typeof parsedParams['--input-file']) {
+        parsedParams['--input-file'] = [currentArg];
         continue;
       }
       throw new Error(['Unrecognized argument: ', currentArg, '.'].join(''));
@@ -43,12 +45,12 @@ Wasm2LangCLI.parseArgv = function () {
 
 /**
  * @param {!Object<string, !Array<string>>} params
- * @return {!Wasm2LangSchema.NormalizedOptions}
+ * @return {!Wasm2Lang.Options.Schema.NormalizedOptions}
  */
-Wasm2LangCLI.processParams = function (params) {
+Wasm2Lang.CLI.CommandLineParser.processParams = function (params) {
   // prettier-ignore
-  var /** @const {!Wasm2LangSchema.NormalizedOptions} */ options = /** @const {!Wasm2LangSchema.NormalizedOptions} */ (
-    Object.assign({}, Wasm2LangSchema.defaultOptions)
+  var /** @const {!Wasm2Lang.Options.Schema.NormalizedOptions} */ options = /** @const {!Wasm2Lang.Options.Schema.NormalizedOptions} */ (
+    Object.assign({}, Wasm2Lang.Options.Schema.defaultOptions)
   );
 
   if ('object' === typeof params['--input-data']) {
@@ -59,6 +61,7 @@ Wasm2LangCLI.processParams = function (params) {
   } else if ('object' === typeof params['--input-file']) {
     var /** @const {!Array<string>} */ inputFileParm = params['--input-file'];
     if (0 !== inputFileParm.length) {
+      // prettier-ignore
       var /** @const {!NodeFileSystem} */ fs = /** @const {!NodeFileSystem} */ (require('fs'));
       var /** @const {string} */ inputFile = inputFileParm[inputFileParm.length - 1];
       if (/\.(?:wat|wast)$/i.test(inputFile)) {
@@ -73,14 +76,14 @@ Wasm2LangCLI.processParams = function (params) {
     throw new Error('No input data provided. Use --input-data or --input-file to specify input.');
   }
 
-  /** @const {!Array<!Wasm2LangSchema.OptionKey>} */
-  var props = Object.keys(Wasm2LangSchema.optionSchema);
+  /** @const {!Array<!Wasm2Lang.Options.Schema.OptionKey>} */
+  var props = Object.keys(Wasm2Lang.Options.Schema.optionSchema);
 
   for (var /** number */ i = 0, /** @const {number} */ len = props.length; i !== len; ++i) {
-    var /** @const {!Wasm2LangSchema.OptionKey} */ key = props[i];
+    var /** @const {!Wasm2Lang.Options.Schema.OptionKey} */ key = props[i];
     var /** @const {string} */ cliKey = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
     if ('object' === typeof params[cliKey]) {
-      Wasm2LangSchema.optionParsers[key](options, params[cliKey]);
+      Wasm2Lang.Options.Schema.optionParsers[key](options, params[cliKey]);
       console.log('Processing CLI option:', cliKey, '(', key, ') ', 'with value:', params[cliKey]);
     }
   }

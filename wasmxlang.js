@@ -5,9 +5,10 @@
   var fs = await import('fs');
 
   var moduleSpecs = [
-    {'sourcePath': 'src/cli/cli.js', 'exportName': 'Wasm2LangCLI'},
-    {'sourcePath': 'src/options/schema.js', 'exportName': 'Wasm2LangSchema'},
-    {'sourcePath': 'src/index.js'}
+    {'sourcePath': 'src/0-header.js', 'exportName': 'Wasm2Lang'},
+    {'sourcePath': 'src/cli/command_line_parser.js'},
+    {'sourcePath': 'src/options/schema.js'},
+    {'sourcePath': 'src/1-main.js'}
   ];
   for (var i = 0, specCount = moduleSpecs.length; i !== specCount; ++i) {
     const code = fs.readFileSync(
@@ -25,9 +26,6 @@
     }
   }
 
-  Wasm2Lang.runCliEntryPoint();
-
-  /*
   var url = await import('url');
 
   var binaryen = (
@@ -45,6 +43,5 @@
   var babelTypes = await import('@babel/types');
   var babelGenerator = await import('@babel/generator');
 
-  process.stdout.write('Hello World' + '\n');
-  */
+  Wasm2Lang.runCliEntryPoint(binaryen, babelTypes, babelGenerator);
 })();

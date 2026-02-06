@@ -1,9 +1,8 @@
-// C:/projects/LibDownloader/closure-compiler-master/contrib/nodejs/fs.js
-
 /**
  * @externs
  * @see http://nodejs.org/api/fs.html
  */
+// /closure-compiler-master/contrib/nodejs/fs.js
 
 /**
  * @interface
@@ -14,7 +13,7 @@ var NodeFileSystem = function () {};
 /**
  * @nosideeffects
  * @param {string} filename
- * @param {(!Object<string,string>|string)=} options
+ * @param {(!Object<string, string>|string)=} options
  * @return {string}
  */
 NodeFileSystem.prototype.readFileSync = function (filename, options) {};
@@ -88,7 +87,7 @@ NodeFileSystem.prototype.closeSync = function (fd) {};
 /**
  * @nosideeffects
  * @param {string} path
- * @param {!Object<string,*>=} options
+ * @param {!Object<string, *>=} options
  * @return {!NodeReadableStream}
  */
 NodeFileSystem.prototype.createReadStream = function (path, options) {};
@@ -96,7 +95,7 @@ NodeFileSystem.prototype.createReadStream = function (path, options) {};
 /**
  * @nosideeffects
  * @param {string} path
- * @param {!Object<string,*>=} options
+ * @param {!Object<string, *>=} options
  * @return {!NodeWritableStream}
  */
 NodeFileSystem.prototype.createWriteStream = function (path, options) {};

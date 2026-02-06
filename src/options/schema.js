@@ -1,12 +1,14 @@
 'use strict';
 
-/** @const */
-var Wasm2LangSchema = {};
+/**
+ * @const
+ */
+Wasm2Lang.Options.Schema = {};
 
 /**
  * @enum {string}
  */
-Wasm2LangSchema.OptionKey = {
+Wasm2Lang.Options.Schema.OptionKey = {
   LANGUAGE_OUT: 'languageOut',
   NORMALIZE_WASM: 'normalizeWasm',
   SIMPLIFY_OUTPUT: 'simplifyOutput',
@@ -31,12 +33,12 @@ Wasm2LangSchema.OptionKey = {
  *   emitWebAssembly: (string|null)
  * }}
  */
-Wasm2LangSchema.NormalizedOptions;
+Wasm2Lang.Options.Schema.NormalizedOptions;
 
 /**
  * @const {!Array<string>}
  */
-Wasm2LangSchema.languages = ['asmjs', 'php64', 'java'];
+Wasm2Lang.Options.Schema.languages = ['asmjs', 'php64', 'java'];
 
 /**
  * @typedef {{
@@ -44,12 +46,12 @@ Wasm2LangSchema.languages = ['asmjs', 'php64', 'java'];
  *   infoPhase: string
  * }}
  */
-Wasm2LangSchema.NormalizeBundleInfo;
+Wasm2Lang.Options.Schema.NormalizeBundleInfo;
 
 /**
- * @const {!Object<string, !Wasm2LangSchema.NormalizeBundleInfo>}
+ * @const {!Object<string, !Wasm2Lang.Options.Schema.NormalizeBundleInfo>}
  */
-Wasm2LangSchema.normalizeBundles = {
+Wasm2Lang.Options.Schema.normalizeBundles = {
   'binaryen:min': {
     infoDescription: 'Minimal, safe Binaryen normalization passes',
     infoPhase: 'binaryen'
@@ -65,9 +67,9 @@ Wasm2LangSchema.normalizeBundles = {
 };
 
 /**
- * @const {!Wasm2LangSchema.NormalizedOptions}
+ * @const {!Wasm2Lang.Options.Schema.NormalizedOptions}
  */
-Wasm2LangSchema.defaultOptions = {
+Wasm2Lang.Options.Schema.defaultOptions = {
   languageOut: 'asmjs',
   normalizeWasm: ['binaryen:min'],
   simplifyOutput: false,
@@ -76,40 +78,40 @@ Wasm2LangSchema.defaultOptions = {
   inputFile: null,
   emitMetadata: null,
   emitCode: null,
-  emitWebAssembly: null,
+  emitWebAssembly: null
 };
 
 /**
  * @const {
  *  !Object<
- *    !Wasm2LangSchema.OptionKey,
- *    function(!Wasm2LangSchema.NormalizedOptions, !Array<string>): void
+ *    !Wasm2Lang.Options.Schema.OptionKey,
+ *    function(!Wasm2Lang.Options.Schema.NormalizedOptions, !Array<string>): void
  *  >
  * }
  */
-Wasm2LangSchema.optionParsers = {};
+Wasm2Lang.Options.Schema.optionParsers = {};
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.LANGUAGE_OUT] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.LANGUAGE_OUT] = function (options, strs) {
   options.languageOut = strs[strs.length - 1].toLowerCase();
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.NORMALIZE_WASM] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.NORMALIZE_WASM] = function (options, strs) {
   options.normalizeWasm = strs[strs.length - 1].toLowerCase().split(',');
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.SIMPLIFY_OUTPUT] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.SIMPLIFY_OUTPUT] = function (options, strs) {
   if (0 === strs.length) {
     options.simplifyOutput = true;
     return;
@@ -118,10 +120,10 @@ Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.SIMPLIFY_OUTPUT] = funct
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.DEFINE] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.DEFINE] = function (options, strs) {
   for (var /** number */ i = 0, /** @const {number} */ len = strs.length; i !== len; ++i) {
     var /** @const {!Array<string>} */ parts = strs[i].split('=', 2);
     options.definitions[parts[0]] = 1 !== parts.length ? parts[1] : '';
@@ -129,30 +131,30 @@ Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.DEFINE] = function (opti
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.INPUT_DATA] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.INPUT_DATA] = function (options, strs) {
   if (0 !== strs.length) {
     options.inputData = strs[strs.length - 1];
   }
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.INPUT_FILE] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.INPUT_FILE] = function (options, strs) {
   if (0 !== strs.length) {
     options.inputFile = strs[strs.length - 1];
   }
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_METADATA] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.EMIT_METADATA] = function (options, strs) {
   if (0 === strs.length) {
     options.emitMetadata = 'metadata';
     return;
@@ -161,10 +163,10 @@ Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_METADATA] = functio
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_CODE] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.EMIT_CODE] = function (options, strs) {
   if (0 === strs.length) {
     options.emitCode = 'code';
     return;
@@ -173,10 +175,10 @@ Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_CODE] = function (o
 };
 
 /**
- * @param {!Wasm2LangSchema.NormalizedOptions} options
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
  * @param {!Array<string>} strs
  */
-Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_WEBASSEMBLY] = function (options, strs) {
+Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.EMIT_WEBASSEMBLY] = function (options, strs) {
   if (0 === strs.length) {
     options.emitWebAssembly = '';
     return;
@@ -184,31 +186,30 @@ Wasm2LangSchema.optionParsers[Wasm2LangSchema.OptionKey.EMIT_WEBASSEMBLY] = func
   options.emitWebAssembly = strs[strs.length - 1];
 };
 
-
 /**
  * @const {
  *  !Object<
- *    !Wasm2LangSchema.OptionKey, {
+ *    !Wasm2Lang.Options.Schema.OptionKey, {
  *      optionType: string,
  *      optionValues: ?Array<string>,
  *      bundles: ?Object<
  *        string,
- *        !Wasm2LangSchema.NormalizeBundleInfo
+ *        !Wasm2Lang.Options.Schema.NormalizeBundleInfo
  *      >,
  *      optionDesc: string
  *    }
  *  >
  * }
  */
-Wasm2LangSchema.optionSchema = {
+Wasm2Lang.Options.Schema.optionSchema = {
   'languageOut': {
     optionType: 'enum',
-    optionValues: Wasm2LangSchema.languages,
+    optionValues: Wasm2Lang.Options.Schema.languages,
     optionDesc: 'Selects the output backend language to generate.'
   },
   'normalizeWasm': {
     optionType: 'bundle-list',
-    bundles: Wasm2LangSchema.normalizeBundles,
+    bundles: Wasm2Lang.Options.Schema.normalizeBundles,
     optionDesc:
       'Comma-separated list of normalization bundles to apply before code generation (e.g. "binaryen:min,wasm2lang:codegen").'
   },
