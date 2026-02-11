@@ -1,0 +1,112 @@
+'use strict';
+
+/**
+ * @const
+ */
+Wasm2Lang.Wasm.WasmNormalization = {};
+
+/**
+ * @param {(string|!Uint8Array|null)} inputData
+ * @return {!BinaryenModule}
+ */
+Wasm2Lang.Wasm.WasmNormalization.readWasmModule = function (inputData) {
+  var /** @const {!Binaryen} */ binaryen = Wasm2Lang.Processor.getBinaryen();
+
+  if ('string' === typeof inputData) {
+    return binaryen.parseText(inputData);
+  }
+  if ('object' === typeof inputData) {
+    // prettier-ignore
+    return binaryen.readBinary(/** @const {!Uint8Array} */ (inputData));
+  }
+  throw new Error('Unsupported input data type for WebAssembly input.');
+};
+
+/**
+ * @param {!BinaryenModule} wasmModule
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
+ * @return {void}
+ */
+Wasm2Lang.Wasm.WasmNormalization.applyNormalizationBundles = function (wasmModule, options) {
+  var /** @const {!Array<string>} */ bundles = options.normalizeWasm || ['binaryen:min'];
+  if (0 === bundles.length) {
+    return;
+  }
+
+  var /** @const {!Array<string>} */ unknownBundles = [];
+
+  for (var /** number */ i = bundles.length - 1; i !== -1; --i) {
+    if ('object' !== typeof Wasm2Lang.Options.Schema.normalizeBundles[bundles[i]]) {
+      unknownBundles[unknownBundles.length] = bundles.splice(i, 1).pop();
+    }
+  }
+
+  if (0 !== unknownBundles.length) {
+    throw new Error('Unknown normalization bundle(s): ' + unknownBundles.join(', '));
+  }
+
+  if (-1 === bundles.indexOf('binaryen:none')) {
+    Wasm2Lang.Wasm.WasmNormalization.applyBinaryenNormalization(wasmModule, -1 !== bundles.indexOf('binaryen:max'));
+  }
+
+  if (-1 !== bundles.indexOf('wasm2lang:codegen')) {
+    Wasm2Lang.Wasm.WasmNormalization.applyWasm2LangNormalization(wasmModule, options);
+  }
+};
+
+/**
+ * @private
+ * @param {!BinaryenModule} wasmModule
+ * @param {!Wasm2Lang.Options.Schema.NormalizedOptions} options
+ * @return {void}
+ */
+Wasm2Lang.Wasm.WasmNormalization.applyWasm2LangNormalization = function (wasmModule, options) {
+  // TODO: Internal wasm2lang transforms for backend emission will live here.
+};
+
+/**
+ * @private
+ * @param {!BinaryenModule} wasmModule
+ * @param {boolean} aggressive
+ * @return {void}
+ */
+Wasm2Lang.Wasm.WasmNormalization.applyBinaryenNormalization = function (wasmModule, aggressive) {
+  // "flatten" inserts explicit returns at block ends so later codegen sees concrete control flow.
+  // "simplify-locals" merges redundant local set patterns to reduce local noise.
+  // "reorder-locals" compacts local indices to a tighter layout.
+  // "vacuum" removes unreachable code left by earlier passes.
+  wasmModule.runPasses(['flatten', 'simplify-locals', 'reorder-locals', 'vacuum']);
+};
+
+// /**
+//  * @private
+//  * @param {!BinaryenModule} wasmModule
+//  * @param {!Array<string>} passList
+//  * @return {void}
+//  */
+// Wasm2Lang.Wasm.WasmNormalization.runBinaryenFunctionPasses = function (wasmModule, passList) {
+//   var /** @const {!Binaryen} */ binaryen = Wasm2Lang.Processor.getBinaryen();
+//   var /** @const {number} */ functionCount = wasmModule.getNumFunctions();
+//
+//   for (var /** number */ i = 0; i !== functionCount; ++i) {
+//     var /** @const {number} */ funcPtr = wasmModule.getFunctionByIndex(i);
+//     var /** @const {!BinaryenFunctionInfo} */ funcInfo = binaryen.getFunctionInfo(funcPtr);
+//     if ('' === funcInfo['base']) {
+//       wasmModule.runPassesOnFunction(funcInfo.name, passList);
+//     }
+//   }
+// };
+
+/**
+ * @param {!BinaryenModule} wasmModule
+ * @param {string} mode
+ * @return {string|!Uint8Array}
+ */
+Wasm2Lang.Wasm.WasmNormalization.emitNormalizedWasm = function (wasmModule, mode) {
+  if ('text' === mode) {
+    return wasmModule.emitText();
+  }
+
+  var /** @const {!BinaryenBinary} */ binaryOutput = wasmModule.emitBinary();
+  return new Uint8Array(binaryOutput.buffer);
+};

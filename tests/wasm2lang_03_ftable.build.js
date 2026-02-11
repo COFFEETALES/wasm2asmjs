@@ -7,13 +7,9 @@
   const url = require('url');
   const binaryen = (
     await import(
-      url.pathToFileURL(
-        path.join(
-          process.env.NODE_PATH || path.join(process.cwd(), 'node_modules'),
-          'binaryen',
-          'index.js'
-        )
-      )['href']
+      url.pathToFileURL(path.join(process.env.NODE_PATH || path.join(process.cwd(), 'node_modules'), 'binaryen', 'index.js'))[
+        'href'
+      ]
     )
   ).default;
 
@@ -35,34 +31,17 @@
 
   const i32PairToI32Type = binaryen.createType([binaryen.i32, binaryen.i32]);
   const f64PairToI32Type = binaryen.createType([binaryen.f64, binaryen.f64]);
-  const f64F32I32ToI32Type = binaryen.createType([
-    binaryen.f64,
-    binaryen.f32,
-    binaryen.i32
-  ]);
-  const i32TripleToI32Type = binaryen.createType([
-    binaryen.i32,
-    binaryen.i32,
-    binaryen.i32
-  ]);
+  const f64F32I32ToI32Type = binaryen.createType([binaryen.f64, binaryen.f32, binaryen.i32]);
+  const i32TripleToI32Type = binaryen.createType([binaryen.i32, binaryen.i32, binaryen.i32]);
 
-  module.addFunction(
-    'returnConst320',
-    i32PairToI32Type,
-    binaryen.i32,
-    [],
-    module.i32.const(0x140)
-  );
+  module.addFunction('returnConst320', i32PairToI32Type, binaryen.i32, [], module.i32.const(0x140));
 
   module.addFunction(
     'addTwoI32',
     i32PairToI32Type,
     binaryen.i32,
     [],
-    module.i32.add(
-      module.local.get(0, binaryen.i32),
-      module.local.get(1, binaryen.i32)
-    )
+    module.i32.add(module.local.get(0, binaryen.i32), module.local.get(1, binaryen.i32))
   );
 
   module.addFunction(
@@ -72,12 +51,7 @@
     [],
     module.i32.add(
       module.i32.shl(
-        module.i32.trunc_u.f64(
-          module.f64.mul(
-            module.local.get(0, binaryen.f64),
-            module.local.get(1, binaryen.f64)
-          )
-        ),
+        module.i32.trunc_u.f64(module.f64.mul(module.local.get(0, binaryen.f64), module.local.get(1, binaryen.f64))),
         module.i32.const(8)
       ),
       module.i32.const(2)
@@ -91,10 +65,7 @@
     [],
     module.i32.or(
       module.i32.trunc_s.f64(
-        module.f64.div(
-          module.local.get(0, binaryen.f64),
-          module.f64.promote(module.local.get(1, binaryen.f32))
-        )
+        module.f64.div(module.local.get(0, binaryen.f64), module.f64.promote(module.local.get(1, binaryen.f32)))
       ),
       module.i32.shl(module.local.get(2, binaryen.i32), module.i32.const(8))
     )
@@ -106,10 +77,7 @@
     binaryen.i32,
     [],
     module.i32.or(
-      module.i32.div_u(
-        module.local.get(0, binaryen.i32),
-        module.local.get(1, binaryen.i32)
-      ),
+      module.i32.div_u(module.local.get(0, binaryen.i32), module.local.get(1, binaryen.i32)),
       module.i32.shl(module.local.get(2, binaryen.i32), module.i32.const(8))
     )
   );
@@ -119,10 +87,7 @@
     i32PairToI32Type,
     binaryen.i32,
     [],
-    module.i32.mul(
-      module.local.get(0, binaryen.i32),
-      module.local.get(1, binaryen.i32)
-    )
+    module.i32.mul(module.local.get(0, binaryen.i32), module.local.get(1, binaryen.i32))
   );
 
   var tableFunctionNames = [
@@ -142,12 +107,7 @@
 
   module.addTable('functionTable', tableFunctionNames.length, 0xffffffff);
   var tableInitSegmentInfo = binaryen.getElementSegmentInfo(
-    module.addActiveElementSegment(
-      'functionTable',
-      'functionTableInitSegment',
-      tableFunctionNames,
-      tableInitOffsetExpr
-    )
+    module.addActiveElementSegment('functionTable', 'functionTableInitSegment', tableFunctionNames, tableInitOffsetExpr)
   );
   module.addFunction(
     'callTableIndex2',

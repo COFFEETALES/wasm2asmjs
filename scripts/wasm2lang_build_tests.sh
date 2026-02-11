@@ -39,6 +39,11 @@ if [ ${#0} -ne ${#prefix} ]; then
        '../tests/'"${filebase}"'.harness.mjs' \
        './'"${filebase}"'/'
       #
+      # Generate original WAST
+      node                                      \
+        "../tests/$filename"                    \
+        1>"${filebase}"/"${filebase}".orig.wast
+      #
       # Generate WASM
       node                                        \
         "../tests/$filename"                      \

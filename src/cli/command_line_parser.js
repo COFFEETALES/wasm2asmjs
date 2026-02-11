@@ -3,9 +3,11 @@
 /**
  * @const
  */
-Wasm2Lang.CLI.CommandLineParser = {}; 
+Wasm2Lang.CLI.CommandLineParser = {};
 
-/** @return {!Object<string, !Array<string>>} */
+/**
+ * @return {!Object<string, !Array<string>>}
+ */
 Wasm2Lang.CLI.CommandLineParser.parseArgv = function () {
   var /** @const {number} */ argvCount = process.argv.length;
   var /** @const {!RegExp} */ optionWithValuePattern = /^(--[\w-]+)(?:[=:])(.*?)$/;
@@ -64,11 +66,11 @@ Wasm2Lang.CLI.CommandLineParser.processParams = function (params) {
       // prettier-ignore
       var /** @const {!NodeFileSystem} */ fs = /** @const {!NodeFileSystem} */ (require('fs'));
       var /** @const {string} */ inputFile = inputFileParm[inputFileParm.length - 1];
-      if (/\.(?:wat|wast)$/i.test(inputFile)) {
-        options.inputData = fs.readFileSync(inputFile, {encoding: 'utf8'});
-      } else {
-        options.inputData = fs.readFileSync(inputFile);
+      var /** @type {boolean} */ isTextFile = false;
+      if (/^(?:was??t:(?!$)|.*?\.was??t$)/i.test(inputFile)) {
+        isTextFile = true;
       }
+      options.inputData = fs.readFileSync(inputFile, isTextFile ? {encoding: 'utf8'} : void 0);
     }
   }
 
@@ -84,7 +86,16 @@ Wasm2Lang.CLI.CommandLineParser.processParams = function (params) {
     var /** @const {string} */ cliKey = '--' + key.replace(/([A-Z])/g, '-$1').toLowerCase();
     if ('object' === typeof params[cliKey]) {
       Wasm2Lang.Options.Schema.optionParsers[key](options, params[cliKey]);
-      console.log('Processing CLI option:', cliKey, '(', key, ') ', 'with value:', params[cliKey]);
+      Wasm2Lang.Utilities.Environment.stderrWriters[Wasm2Lang.Utilities.Environment.isNode()](
+        Wasm2Lang.Utilities.Environment.LogLevel.INFO,
+        'Processing CLI option:',
+        cliKey,
+        '(',
+        key,
+        ') ',
+        'with value:',
+        params[cliKey].join(' ')
+      );
     }
   }
 

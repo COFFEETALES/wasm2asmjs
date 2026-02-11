@@ -12,12 +12,16 @@ const moduleImports = {};
 const runTest = function (buff, out, exports) {
   instanceMemoryBuffer = buff;
   stdoutWrite = out;
-  for (let i = 2; i !== 38; ++i) {
-    stdoutWrite(exports['fibonacci'](i) + '\n');
-  }
-  // exports['fibonacci'](46) -> i32 limit
+  stdoutWrite((exports['basis0'](0) >>> 0) + '\n');
 };
 
 const heapBase = 128;
 
-export {heapBase, memoryInitialPages, memoryMaximumPages, memoryPageSize, moduleImports, runTest};
+export {
+  heapBase,
+  memoryInitialPages,
+  memoryMaximumPages,
+  memoryPageSize,
+  moduleImports,
+  runTest
+};

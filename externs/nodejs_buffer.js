@@ -11,7 +11,7 @@ var Buffer = function () {};
 
 /**
  * @nosideeffects
- * @param {(string)} init
+ * @param {(string|!ArrayBuffer|!Uint8Array)} init
  * @param {string=} encoding
  * @return {!Buffer}
  */

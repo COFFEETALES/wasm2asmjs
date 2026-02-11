@@ -1,12 +1,8 @@
 'use strict';
 
-const isNode =
-  'object' === typeof process &&
-  'object' === typeof process.versions &&
-  'string' === typeof process.versions.node;
+const isNode = 'object' === typeof process && 'object' === typeof process.versions && 'string' === typeof process.versions.node;
 
-const isSpiderMonkey =
-  'function' === typeof print && 'function' === typeof readline;
+const isSpiderMonkey = 'function' === typeof print && 'function' === typeof readline;
 
 const stdoutWrite = isNode ? process.stdout.write.bind(process.stdout) : putstr;
 
@@ -49,9 +45,7 @@ const wasm = !!obj['wasm'];
       const fs = require('fs');
       bin = fs.readFileSync(0);
     } else {
-      throw new Error(
-        'WASM input via stdin not supported in this environment.'
-      );
+      throw new Error('WASM input via stdin not supported in this environment.');
     }
 
     const instance = new WebAssembly.Instance(new WebAssembly.Module(bin), {
@@ -75,18 +69,12 @@ const wasm = !!obj['wasm'];
     const [memBuffer, module] = eval([code, '[memBuffer, module]'].join('\n'));
 
     if (isSpiderMonkey) {
-      if (
-        [isAsmJSCompilationAvailable(), isAsmJSModule(module)].includes(false)
-      ) {
+      if ([isAsmJSCompilationAvailable(), isAsmJSModule(module)].includes(false)) {
         throw new Error('ASM.js module validation failed.');
       }
     }
 
-    const l = module(
-      isNode ? global : globalThis,
-      harness.moduleImports,
-      memBuffer
-    );
+    const l = module(isNode ? global : globalThis, harness.moduleImports, memBuffer);
     harness.runTest((instanceMemoryBuffer = memBuffer), stdoutWrite, l);
   }
 
@@ -144,8 +132,6 @@ const wasm = !!obj['wasm'];
     //    ((crc ^ 0xffffffff) >>> 0).toString(16).padStart(8, '0') +
     //    '\n'
     //);
-    stdoutWrite(
-      'Memory CRC32: 0x' + crc32(bytes).toString(16).padStart(8, '0') + '\n'
-    );
+    stdoutWrite('Memory CRC32: 0x' + crc32(bytes).toString(16).padStart(8, '0') + '\n');
   }
 })();

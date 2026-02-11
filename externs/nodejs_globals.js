@@ -33,6 +33,11 @@ NodeProcess.prototype.versions;
 NodeProcess.prototype.stdout;
 
 /**
+ * @type {!NodeWritableStream}
+ */
+NodeProcess.prototype.stderr;
+
+/**
  * @const {!NodeProcess}
  */
 var process;

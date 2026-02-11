@@ -21,8 +21,7 @@ const offsetList = new Int32Array(expectedData.length);
   for (let j = 1; j < expectedData.length; ++j) {
     offsetList[+0 + j] = i = (i + expectedData[-1 + j].length + 1 + 127) & ~127;
   }
-  var heapBase =
-    (i + expectedData[-1 + expectedData.length].length + 1 + 127) & ~127;
+  var heapBase = (i + expectedData[-1 + expectedData.length].length + 1 + 127) & ~127;
 }
 
 let instanceMemoryBuffer = null;

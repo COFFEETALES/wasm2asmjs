@@ -20,11 +20,4 @@ const runTest = function (buff, out, exports) {
 
 const heapBase = 128;
 
-export {
-  heapBase,
-  memoryInitialPages,
-  memoryMaximumPages,
-  memoryPageSize,
-  moduleImports,
-  runTest
-};
+export {heapBase, memoryInitialPages, memoryMaximumPages, memoryPageSize, moduleImports, runTest};

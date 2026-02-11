@@ -51,19 +51,26 @@ Wasm2Lang.Options.Schema.NormalizeBundleInfo;
 /**
  * @const {!Object<string, !Wasm2Lang.Options.Schema.NormalizeBundleInfo>}
  */
-Wasm2Lang.Options.Schema.normalizeBundles = {
-  'binaryen:min': {
-    infoDescription: 'Minimal, safe Binaryen normalization passes',
-    infoPhase: 'binaryen'
-  },
-  'binaryen:max': {
-    infoDescription: 'Aggressive Binaryen normalization for code generation',
-    infoPhase: 'binaryen'
-  },
-  'wasm2lang:codegen': {
-    infoDescription: 'Internal wasm2lang transformations for easier backend emission',
-    infoPhase: 'wasm2lang'
-  }
+Wasm2Lang.Options.Schema.normalizeBundles = Object.create(null);
+
+Wasm2Lang.Options.Schema.normalizeBundles['binaryen:none'] = {
+  infoDescription: 'No normalization (raw WebAssembly input).',
+  infoPhase: 'binaryen'
+};
+
+Wasm2Lang.Options.Schema.normalizeBundles['binaryen:min'] = {
+  infoDescription: 'Minimal, safe Binaryen normalization passes.',
+  infoPhase: 'binaryen'
+};
+
+Wasm2Lang.Options.Schema.normalizeBundles['binaryen:max'] = {
+  infoDescription: 'Aggressive Binaryen normalization for code generation.',
+  infoPhase: 'binaryen'
+};
+
+Wasm2Lang.Options.Schema.normalizeBundles['wasm2lang:codegen'] = {
+  infoDescription: 'Internal wasm2lang transformations for easier backend emission.',
+  infoPhase: 'wasm2lang'
 };
 
 /**
@@ -104,7 +111,9 @@ Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.LANGUA
  * @param {!Array<string>} strs
  */
 Wasm2Lang.Options.Schema.optionParsers[Wasm2Lang.Options.Schema.OptionKey.NORMALIZE_WASM] = function (options, strs) {
-  options.normalizeWasm = strs[strs.length - 1].toLowerCase().split(',');
+  options.normalizeWasm = strs.flatMap(function (str) {
+    return str.toLowerCase().split(',');
+  });
 };
 
 /**

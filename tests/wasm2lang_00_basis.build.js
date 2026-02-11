@@ -1,7 +1,7 @@
 'use strict';
 
 (async function () {
-  const harness = await import('../tests/wasm2lang_02_fibonacci.harness.mjs');
+  const harness = await import('../tests/wasm2lang_00_basis.harness.mjs');
 
   const path = require('path');
   const url = require('url');
@@ -29,25 +29,28 @@
     /* shared */ false
   );
 
-  // i32 fibonacci(i32 n) { return (n < 2) ? n : fibonacci(n-1) + fibonacci(n-2); }
   {
     const i32 = binaryen.i32;
     const params = binaryen.createType([i32]);
 
     const n = module.local.get(0, i32);
 
-    const body = module.if(
-      module.i32.lt_s(n, module.i32.const(2)),
-      n,
-      module.i32.add(
-        module.call('fibonacci', [module.i32.sub(n, module.i32.const(1))], i32),
-        module.call('fibonacci', [module.i32.sub(n, module.i32.const(2))], i32)
-      )
+    const body = module.block(
+      null,
+      [
+        module.local.set(1, module.i32.const(Math.pow(2, 31) - 1)),
+        module.block(null, [
+          module.local.set(2, module.i32.const(Math.pow(2, 31) - 1)),
+          module.block(null, [module.local.set(3, module.i32.add(module.local.get(1, i32), module.local.get(2, i32)))])
+        ]),
+        module.local.get(3, i32)
+      ],
+      i32
     );
 
-    module.addFunction('fibonacci', /* params */ params, /* result */ i32, /* locals */ [], body);
+    module.addFunction('basis0', /* params */ params, /* result */ i32, /* locals */ [i32, i32, i32], body);
 
-    module.addFunctionExport('fibonacci', 'fibonacci');
+    module.addFunctionExport('basis0', 'basis0');
   }
 
   if (!module.validate()) throw new Error('validation error');
