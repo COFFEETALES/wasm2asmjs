@@ -39,6 +39,6 @@
 })();
 
 /** @preserve One-line CLI invocation:
- * node wasmxlang.js --input-file temp/basis0.wast --normalize-wasm binaryen:min --normalize-wasm binaryen:max --emit-web-assembly text --closure-compiled
- * --closure-compiled is optional and can be used to run the CLI with a closure-compiled version of the code, which may be faster to load and execute.
+ * node wasmxlang.js --input-file temp/basis0.wast --normalize-wasm binaryen:min --normalize-wasm binaryen:max --emit-web-assembly text
+ * --dev is optional and can be used to run the CLI with unminified versions of the code, which may be easier to debug and understand.
  */
